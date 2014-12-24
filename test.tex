@@ -1,0 +1,31 @@
+\documentclass[12pt]{article}
+\usepackage{fontspec}
+\setmainfont{old-english-regular.otf}
+\setsansfont{Century Expanded CD}
+\usepackage{geometry}
+\geometry{margin=.5in}
+
+\begin{document}
+
+\Huge
+abcdefghijklmnopqrstuvwxyz
+\textsf{abcdefghijklmnopqrstuvwxyz}
+
+now is the time for all good men to come to the aid of their party
+\textsf{now is the time for all good men to come to the aid of their party}
+
+the quick brown fox jumps over the lazy dog
+\textsf{the quick brown fox jumps over the lazy dog}
+
+hamburgefonstiv
+\textsf{hamburgefonstiv}
+
+\def\doletter#1{\ifx#1\relax\else #1\textsf{#1} \expandafter\doletter\fi}
+
+\doletter abcdefghijklmnopqrstuvwxyz\relax
+
+supreme court of the united states
+
+court of appeals for the federal circuit
+
+\end{document}

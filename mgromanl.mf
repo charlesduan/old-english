@@ -1,0 +1,511 @@
+% THIS IS THE OFFICIAL COMPUTER MODERN SOURCE FILE romanl.mf BY D E KNUTH.
+% IT MUST NOT BE MODIFIED IN ANY WAY UNLESS THE FILE NAME IS CHANGED!
+
+% Computer Modern Roman lower case:
+% These letters were originally coded by D. E. Knuth in November, 1979,
+% inspired by the Monotype faces used in {\sl The Art of Computer Programming}.
+% Sans serif designs by Richard Southall were added in April, 1982.
+% The programs were revised for the new \MF\ conventions in 1985.
+
+% Character codes \0141 through \0172 are generated.
+
+cmchar "The letter a";
+beginchar("a",w_strokes(2),x_height#,0);
+path p[];
+italcorr 1/3[bh#,x_height#]*slant+.5stem#-serif_fit#-2u#;
+adjust_fit(0,0);
+nibstems(2,3,4); nibthinstems(5);
+pos6(nib_hair,90);
+x2l=u; x3r=x4r=w-u;
+y1l=bar_height; y4=-o;
+nibhairs(7); z7r=whatever[z5l,z5r]; x7r=1.5u;
+x5r=.5[x7r,x3r];
+y5r=h+o; z5r=z3r+whatever*nib_draw_dir;
+x6=x3; y6r=y1r;
+u_stroke_path1(3,a,2,1);
+correct_l(3,5);
+p4=out_serif_path(4,3,b);
+z1'l=z1l+nib_hair*down;
+z5'l=whatever[z5l,z3l]=z7l+whatever*(z5r-z7r);
+fill combine(lpath1,z3l--p4)--z3r--z5r--z7r--z7l--z5'l
+ --combine(z3l--p4,z6r{left}..{-nib_dir}z1l)--cycle;
+p1=subpath (1,infinity) of var_combine(z2r--z1r,z1'l{nib_dir}..{right}z6l);
+p2=var_combine(z3l--p4,rpath1);
+unfill combine(p1,p2)--cycle;
+penlabels(1,1',2,3,4,5,6,7,8,9,10,11,12,13); endchar;
+
+cmchar "The letter b";
+beginchar("b",w_strokes(2),asc_height#,0);
+italcorr .5x_height#*slant+min(.5curve#-u#,-.25u#);
+path p[];
+adjust_fit(0,0);
+nibstems(1,2,3); nibthinstems(5);
+x1l=x2l=u; x3r=w-u;
+y1=h+o; y5l=-o;
+overlap(5,4);
+z2=z5+whatever*nib_draw_dir;
+h_stroke_path1(1,a,3,4);
+%x2'r=x2r; z2'r=z5r+whatever*(z2l-z5l);
+correct_r(2,5);
+overlap_point6(2,5,4,3);
+p1=asc_serif_path(1,2,b);
+fill z2l--z5l--z4r--combine(rpath1,z2r--p1)--cycle;
+unfill var_combine(z2r--p1,lpath1)--z6--cycle;
+penlabels(0,1,2,3,4,5); endchar;
+
+cmchar "The letter c";
+beginchar("c",w_open_strokes,x_height#,0);
+italcorr x_height#*slant-.2u#;
+adjust_fit(0,0);
+path p[];
+nibstems(1,2);
+nibthinstems(4,5);
+x1l=x2l=u; x5r=x3l=w-.5u;
+y4r=h+o; y2=-o;
+overlap(1,4);
+z5=z4+whatever*nib_draw_dir;
+p2=right_hook_serif_path(2,3,a);
+fill var_combine(p2--z1r,z4l--z5l)--z5r--z4r--z1l--cycle;
+penlabels(0,1,2,3,4,5); endchar;
+
+cmchar "The letter d";
+beginchar("d",w_strokes(2),asc_height#,0);
+italcorr asc_height#*slant-serif_fit#+.5stem#-2u#;
+adjust_fit(0,0);
+path p[];
+nibstems(1,4); nibthinstems(3,6,7,8);
+x1l=x7l=u; x4r=w-u;
+y6r=x_height+o; y3l=-o;
+overlap(1,6); overlap(3,4);
+angle_points(1,2,3,down,nib_draw_dir);
+angle_points(4,5,6,up,nib_draw_dir);
+z7r=whatever[z5r,z6r];
+x8l=.5u; y8=.4[y7,h+o];
+pos9(nib_hair,nib_angle-90); y9l=h+o; x9=x6;
+make_paths1(rev.l) z6e{z7e-z6e}...{up}z8e...{nib_dir}z9e;
+fill z1l--z2l--z3l--z4r--z5r--z6r--rpath1--lpath1--cycle;
+unfill combine(z2r--z3r,z4l--z5l) & combine(z5l--z6l,z1r--z2r) & cycle;
+penlabels(1,2,3,4,5,6,7,8); endchar;
+
+cmchar "The letter e";
+beginchar("e",w_open_strokes,x_height#,0);
+italcorr .5[bar_height#,x_height#]*slant+.5min(curve#-1.5u#,0);
+adjust_fit(0,0);
+path p[];
+nibstems(1,2);
+nibthinstems(4);
+pos6(nib_hair,nib_angle - 90);
+x1l=x2l=u; x5r=x3l=w-.5u;
+y4r=h+o; y2=-o;
+overlap(1,4);
+x6=x1;
+angle_points(4,5,6,nib_dir rotated 85,nib_dir);
+p2=right_hook_serif_path(2,3,a);
+overlap_point7(2,1,4,5);
+z8=whatever[z1r,z2r]=whatever[z5l,z6l];
+fill var_combine(p2--z1r,z6r--z5r)--z4r--z1l--cycle;
+unfill z8--z7--z5l--cycle;
+penlabels(0,1,2,3,4,5,6,7,8); endchar;
+
+cmchar "The letter f";
+beginchar("f",w_strokes(1)+u#,asc_height#,0);
+italcorr asc_height#*slant+if serifs:flare#-.25u# else: 1.25u# fi;
+adjust_fit(0,0);
+path p[];
+nibstems(1,2); nibthinstems(3,4);
+x1l=x2l=u; x4r=w+.5u;
+y3r=h+oo; y2=-o;
+x5l=w-.5u;
+z1r=z3l+.5stem*nib_dir;
+z4=z3+whatever*(nib_draw_dir yscaled .5);
+p2=right_hook_serif_path(2,5,a);
+z4'l=whatever[z3l,z4l]; x4'l=x4r-hair;
+overlap_point7(2,1,3,4);
+pos8(bar,80); pos9(bar, 80);
+y8r=y9r=x_height;
+x8l=0; x9r=w-.5u;
+fill p2--(x1r,y9l)--z9l--z9r--(x1r,y9r)
+ --z7--z4'l--z4r--z3r--z1l
+ --(x1l,y8r)--z8r--z8l--(x1l,y8l)--cycle;
+penlabels(1,2,3,4,5,6); endchar;
+
+cmchar "The letter g";
+beginchar("g",w_strokes(2),x_height#,desc_depth#);
+italcorr x_height#*slant+.25u#;
+adjust_fit(0,0);
+path p[];
+nibstems(2,4,5); nibthinstems(3,8,9);
+x2l=u; y3r=h+o; y9l=-d-o; overlap(1,3);
+x4r=x5r=w-u; z4=z3+whatever*nib_draw_dir;
+overlap(9,5);
+u_stroke_path1(5,a,2,1);
+z8l=z9l+whatever*nib_draw_dir=whatever[z.a1r,z.a2r];
+z8'r=whatever[z8r,z9r]=whatever[z.a1l,z.a2l];
+overlap_point6(2,1,3,4);
+overlap_point10(8,9,5,4);
+z7=whatever[z4l,z5l]=z3l+whatever*(z4r-z3r); y4l:=y7;
+fill combine(lpath1,z4l--z10)
+ --z8r--z8l--z9l--z5r--z4r--z3r--z1l--cycle;
+fill z8l--z.a1r--z.a1l--z8'r--cycle;
+unfill var_combine(z4l--z5l,rpath1)--z6--cycle;
+penlabels(0,1,2,3,4,5,5',6,7,8,9); endchar;
+
+cmchar "The letter h";
+beginchar("h",w_strokes(2),asc_height#,desc_depth#);
+italcorr .5[bar_height#,x_height#]*slant-serif_fit#+.5stem#-2u#;
+adjust_fit(0,0);
+path p[];
+nibstempos1; nibstempos2; nibstempos3;
+x1l=u; x1l=x2l; x3r=w-u;
+y1=h+o; y2=-o;
+nibhairpos5; y5l=-d-o; x5=x1;
+h_stroke_path1(2,a,3,4);  % arch and right stem
+p1=diamond_serif_path(2,1,c);
+p2=asc_serif_path(1,2,b);
+p3=sweep_serif_path(4,3,e,5);
+fill var_combine(p1--z1r,lpath1)--p3--combine(rpath1,z2r--p2)--cycle;
+penlabels(1,2,3,4,5); endchar;
+
+cmchar "The letter i";
+beginchar("i",w_strokes(1),min(asc_height#,10/7x_height#+.5i_dot_size#),0);
+italcorr h#*slant-serif_fit# + .5i_dot_size# -2u#;
+adjust_fit(serif_fit#+stem_shift# if monospace:+.25u#fi,serif_fit#-stem_shift#);
+pos1(nib_stem,nib_angle); pos2(nib_stem,nib_angle);
+x1l=u; x1=x2;
+y1=x_height+o; y2=-o;
+pos3(i_dot_size,0); pos4(i_dot_size,90);
+x3=x1;
+y4r=h+1;
+x3=x4; y3=.5[y4l,y4r]; dot_path(3,4);  % dot
+fill diamond_serif_path(1,2,a)--
+    out_serif_path(2,1,b)--cycle;
+penlabels(1,2,3,4); endchar;
+
+cmchar "The letter j";
+beginchar("j",w_strokes(1),min(asc_height#,10/7x_height#+.5i_dot_size#),desc_depth#);
+italcorr h#*slant-serif_fit#+.5stem#-2u#;
+adjust_fit(0,0);
+nibstempos1; nibstempos2; nibhairpos5;
+x1l=x2l=u; y1=x_height+o; y2=-o;
+x5=x2-2u-.5stem; y5l=-d-o;
+fill diamond_serif_path(1,2,a)--sweep_serif_path(2,1,b,5)--cycle;
+pos3(i_dot_size,0); pos4(i_dot_size,90);
+x3=x1;
+y4r=h+1;
+if y4l-y1<slab: y4l:=min(y4r-eps,y1+tiny+slab); fi
+x3=x4; y3=.5[y4l,y4r]; dot_path(3,4);  % dot
+penlabels(1,2,3); endchar;
+
+cmchar "The letter k";
+beginchar("k",w_strokes(2),asc_height#,0);
+italcorr x_height#*slant-.2u#;
+adjust_fit(0,0);
+path p[];
+nibstems(1,2); nibthinstems(3,4,7);
+nibhairs(6,8);
+x1l=x2l=u; x4r=w-u; x3l=x2r; x6l=w-.25u;
+y1=h+o; y2=y4l=-o; y3=.2[bar_height,x_height];
+z6l=whatever[z4l,z4r];
+z4'r=whatever[z4r,z3r]=z6r+whatever*(z4r-z4l);
+p1=asc_serif_path(1,2,a);
+p2=diamond_serif_path(2,1,b);
+p4=z4l--z6l--z6r--z4'r;
+y5r=x_height+o; x7r=w-.5u;
+z7r=z5r+whatever*nib_draw_dir;
+z8l=z3l;
+x5r=.6[x8r,x7r];
+z5l=z7l+whatever*(z5r-z7r)=z8l+whatever*(z5r-z8r);
+z7'l=whatever[z5l,z7l]=z7r+whatever*(z5r-z8r);
+z3'r=whatever[z3l,z5l]=whatever[z3r,z4r];
+z8'r=whatever[z1r,z2r]=whatever[z8r,z5r];
+z3'l=whatever[z1r,z2r]=whatever[z3l,z4l];
+fill p1--p2--z3'l--p4--z3'r--z5l--z7'l--z7r--z5r--z8'r--cycle;
+penlabels(0,1,2,3,4,5,6,7,8); endchar;
+
+cmchar "The letter l";
+beginchar("l",w_strokes(1),asc_height#,0); l_width#:=5u#+2serif_fit#;
+italcorr asc_height#*slant-serif_fit#+.5stem#-2u#;
+adjust_fit(0,0);
+nibstempos1; nibstempos2;
+x1l=u; x1=x2; y1=h+o; y2=-o;
+fill asc_serif_path(1,2,a)--diamond_serif_path(2,1,b)--cycle;
+penlabels(1,2); endchar;
+
+cmchar "The letter m";
+beginchar("m",w_strokes(3),x_height#,0);
+italcorr .5[bar_height#,x_height#]*slant-serif_fit#+.5stem#-2u#;
+adjust_fit(0,0);
+path p[];
+nibstems(1,2,1',2',3,5);
+x1l=u; x1l=x1'l=x2l=x2'l; % stem, sic
+x5r=w-u; x5-x3=x3-x1;
+y1=h+o; y2=-o; y1=y1'; y2=y2';
+h_stroke_path1(2,a,3,4);  % left arch and middle stem
+h_stroke_path2(4,b,5,6);  % right arch and right stem
+p1=in_serif_path(1,2,c);
+p2=diamond_serif_path(2,1,d); % lower left serif
+p3=diamond_serif_path(4,3,f); % lower middle serif
+p4=out_serif_path(6,5,h); % lower right serif
+fill var_combine(p2--z1r,lpath1)--var_combine(p3--z3r,lpath2)--p4
+    --combine(combine(rpath2,z4r--rpath1),z2'r--p1)
+    --cycle;
+penlabels(1,2,3,4,5,6); endchar;
+
+cmchar "The letter n";
+beginchar("n",w_strokes(2),x_height#,0);
+italcorr .5[bar_height#,x_height#]*slant-serif_fit#+.5stem#-2u#;
+adjust_fit(serif_fit#+stem_shift#,serif_fit#-stem_shift#);
+path p[];
+nibstempos1; nibstempos2; nibstempos3;
+x1l=u; x1l=x2l; x3r=w-u;
+y1=h+o; y2=-o;
+h_stroke_path1(2,a,3,4);
+numeric inner_jut;
+if x2r+jut+.5u+1<=x4l-jut: inner_jut=jut;
+else: x2r+jut+.5u+1=x4l-inner_jut; fi
+p1=diamond_serif_path(2,1,c);
+p2=in_serif_path(1,2,b);
+p3=out_serif_path(4,3,e);
+fill var_combine(p1--z1r,lpath1)--p3--combine(rpath1,z2r--p2)--cycle;
+penlabels(1,2,3,4); endchar;
+
+cmchar "The letter o";
+beginchar("o",w_strokes(2),x_height#,0);
+italcorr .7x_height#*slant;
+adjust_fit(0,0);
+nibstems(1,4); nibthinstems(3,6);
+x1l=u; x4r=w-u;
+y6r=h+o; y3l=-o;
+overlap(1,6); overlap(3,4);
+angle_points(1,2,3,down,nib_draw_dir);
+angle_points(4,5,6,up,nib_draw_dir);
+fill z1l--z2l--z3l--z4r--z5r--z6r--cycle;
+unfill combine(z2r--z3r,z4l--z5l) & combine(z5l--z6l,z1r--z2r) & cycle;
+penlabels(1,2,3,4,5,6); endchar;
+
+cmchar "The letter p";
+beginchar("p",w_strokes(2),x_height#,desc_depth#);
+italcorr .5x_height#*slant+min(.5curve#-.85u#,-.1u#);
+adjust_fit(0,0);
+path p[];
+nibstems(1,2,3); nibthinstems(5,6);
+x1l=x2l=u;
+x3r=w-u;
+y1=h+o; y2=-d-o;
+h_stroke_path1(2,a,3,4);
+same_pos(4',4); x4'=x4;
+y5l=-o; overlap(5,4');
+x6r=x1r; z6=z5+whatever*nib_draw_dir;
+p1=in_serif_path(1,2,b);
+p2=diamond_serif_path(2,1,c);
+fill z4'r--combine(rpath1,z2r--p1)
+    --var_combine(p2--z1r,z6l--z5l)--cycle;
+z7=whatever[z5r,z6r]=whatever[z3l,z4l];
+unfill z7--var_combine(z6r--p1,lpath1)--cycle;
+penlabels(0,1,2,3,4,4',5,6); endchar;
+
+cmchar "The letter q";
+beginchar("q",w_strokes(2),x_height#,desc_depth#);
+italcorr x_height#*slant-serif_fit#+.5stem#-2u# if serifs:+.5u# fi;
+path p[];
+adjust_fit(0,0);
+nibstems(2,4,5); nibthinstems(3);
+x2l=u; y3r=h+o; overlap(1,3);
+x4r=x5r=w-u; y5=-d-o; z4=z3+whatever*nib_draw_dir;
+u_stroke_path1(5,a,2,1);
+overlap_point6(2,1,3,4);
+p5=diamond_serif_path(5,4,b);
+z7=whatever[z4l,z5l]=z3l+whatever*(z4r-z3r); y4l:=y7;
+fill combine(lpath1,z4l--p5)--z4r--z3r--z1l--cycle;
+unfill var_combine(z4l--p5,rpath1)--z6--cycle;
+penlabels(0,1,2,3,4,5,6); endchar;
+
+cmchar "The letter r";
+beginchar("r",w_open_strokes-u#,x_height#,0);
+italcorr x_height#*slant if not serifs: +.25u# fi;
+adjust_fit(0,0);
+path p[];
+nibstems(1,2); nibhairs(4);
+nibthinstems(6);
+x1l=x2l=u; x6r=w+.75u;
+y1=h+o; y2=-o;
+z4=whatever[z1,z2];
+%x5l=.5[x4l,x6l];
+y4l=y6l;
+y5r=h+o;
+x3l=x6r-1.5u;
+angle_points(4,5,6,nib_dir,nib_dir xscaled -1);
+p1=in_serif_path(1,2,a);
+p2=right_hook_serif_path(2,3,b);
+make_paths1(rev.r) z4e--z5e--z6e;
+pickup pencircle scaled 3;
+fill combine(p2--p1,lpath1)--var_combine(rpath1,p2--p1)--cycle;
+penlabels(1,2,3,4,5,6); endchar;
+
+cmchar "The letter s";
+beginchar("s",w_strokes(2),x_height#,0);
+italcorr x_height#*slant-if serifs:.55u# else:.3u# fi;
+adjust_fit(0,0);
+pos10(nib_hair,0); pos11(nib_hair,0);
+z10r=(w-.5u,h+o); z11l=(.5u,-o);
+nibthinstems(20,21);
+z21r=z20l=.5[z11l,z10r];
+forsuffixes $=r,,l:
+ z20'$=whatever[z10r,z11r]=z20$+whatever*nib_draw_dir;
+endfor
+forsuffixes $=r,,l:
+ z21'$=whatever[z10l,z11l]=z21$+whatever*nib_draw_dir;
+endfor
+nibstems(1,4,5,6);
+show overlap_amt;
+show overlap_amt.more;
+y6r=h+o; x1l=u; overlap(1,6)more;
+x4r=w-u; y5l=-o; overlap(5,4)more;
+angle_points(1,2,21',down,nib_draw_dir);
+angle_points(20',3,4,nib_draw_dir,down);
+forsuffixes $=l,,r:
+ y30$=y6$; z30$=whatever[z10l,z11l];
+ y31$=y5$; z31$=whatever[z10r,z11r];
+ z40$=(.5[x6$,x30$],y6$-2hair);
+ z41$=(.5[x5$,x31$],y5$+2hair);
+endfor
+fill z2l--z21'l--z11l..{right}z41l..z5l--z4r--z3r--z20'r--z10r..{left}z40r..z6r--z1l--cycle;
+unfill var_combine(z2r--z1r,z6l..{right}z40l..z30l)--z21'r--cycle;
+unfill var_combine(z3l--z4l,z5r..{left}z41r..z31r)--z20'l--cycle;
+penlabels(1,2,3,4,5,6,7,8,10,11,20',21',30,31,40,41); endchar;
+
+cmchar "The letter t";
+beginchar("t",stem#+3u#,
+ min(asc_height#,x_height#+3bar#),0);
+italcorr x_height#*slant if serifs: -.9u# else: -.4u# fi;
+adjust_fit(0,0);
+path p[];
+nibstems(1,2);
+x1l=x2l=u; x3l=w-.25u;
+y1r=h+o; y2l=-o;
+p2=right_hook_serif_path(2,3,a);
+pos4(bar,80); y4r=x_height; x4r=x3l;
+z5=(.5u,y4l);
+fill p2--(x2r,y4l)--z4l--z4r--(x2r,y4r)--z1r--z5--(x2l,y5)--cycle;
+penlabels(1,2,3,4,5); endchar;
+
+cmchar "The letter u";
+beginchar("u",w_strokes(2),x_height#,0);
+italcorr x_height#*slant-serif_fit#+.5stem#-2u#;
+adjust_fit(0,0);
+path p[];
+nibstems(2,3,4);
+x2l=u; x3r=x4r=w-u;
+y1=y3=x_height+o; y4=-o;
+u_stroke_path1(4,a,2,1);
+p1=diamond_serif_path(1,2,b);
+p3=diamond_serif_path(3,4,c);
+p4=out_serif_path(4,3,d);
+fill combine(lpath1,p3--p4)--var_combine(p3--p4,rpath1)--p1--cycle;
+penlabels(1,2,3,4); endchar;
+
+cmchar "The letter v";
+beginchar("v",w_strokes(2),5/4x_height#,0);
+italcorr x_height#*slant+.25u#;
+adjust_fit(0,0);
+path p[];
+nibstems(1,2,3);
+nibthinstems(5);
+x1l=x2l=u; x3r=w-u;
+y1=x_height+o; y5l=-o;
+z2l=z5l+whatever*nib_draw_dir;
+overlap(5,4);
+h_stroke_path1(1,a,3,4)v;
+correct_r(2,5);
+p1=in_squiggle_path(1,b);
+overlap_point6(2,5,4,3);
+fill z2l--z5l--z4r--combine(rpath1,z2r--p1)--cycle;
+unfill var_combine(z2r--p1,lpath1)--z6--cycle;
+penlabels(1,2,3,4,5); endchar;
+
+cmchar "The letter w";
+beginchar("w",w_strokes(3),5/4x_height#,0);
+italcorr x_height#*slant+.25u#;
+adjust_fit(0,0);
+path p[];
+nibstems(1,2,3,7);
+nibthinstems(4',5,9);
+x1l=x2l=u; x3=.5[x1,x7]; x7r=w-u;
+y1=x_height+o; y5l=-o; y9l=-o;
+z4'r=z4r;
+overlap(5,4);
+overlap(9,8);
+h_stroke_path1(1,a,3,4)v;
+h_stroke_path2(3,b,7,8)v;
+z2l=z5l+whatever*(z4r-z9r);
+correct_r(2,5);
+p1=in_squiggle_path(1,c);
+overlap_point6(2,5,4,3);
+overlap_point10(4',9,8,7);
+pickup pencircle scaled 2;
+fill z2l--z5l--z4'l--z9l--z8r
+    --combine(rpath2,z4r--combine(rpath1,z2r--p1))--cycle;
+unfill var_combine(z2r--p1,lpath1)--z6--cycle;
+unfill var_combine(z4r--rpath1,lpath2)--z10--cycle;
+penlabels(0,1,2,3,4,5,6,7,8,9); endchar;
+
+cmchar "The letter x";
+beginchar("x",w_strokes(2),x_height#,0);
+italcorr x_height#*slant-.05u#;
+path p[];
+adjust_fit(0,0);
+nibthinstems(1,2,5,6);
+nibhairs(3,4,7,8);
+x1l=u; x2r=w-u; y1r=y4r=h+o; y2l=y3l=-o;
+x5l=x3l-1.5u=.5u; z5l=z3l+whatever*nib_draw_dir;
+x6r=x4r+1.5u=w-.5u; z6r=z4r+whatever*nib_draw_dir;
+z5'r=z5l+whatever*(z4l-z3l)=z5r+whatever*nib_draw_dir;
+z6'l=z6r+whatever*(z4r-z3r)=z6l+whatever*nib_draw_dir;
+z4'l=whatever[z4l,z3l]=z6'l+whatever*nib_draw_dir;
+z3'r=whatever[z4r,z3r]=z5'r+whatever*nib_draw_dir;
+x7r=.5u; z7r=whatever[z1r,z1l];
+x8l=w-.5u; z8l=whatever[z2r,z2l];
+z1'l=whatever[z1l,z2l]=z7l+whatever*nib_dir;
+z2'r=whatever[z1r,z2r]=z8r+whatever*nib_dir;
+p1=z1r--z7r--z7l--z1'l;
+p2=z2l--z8l--z8r--z2'r;
+p3=z3'r--z5'r--z5l--z3l;
+p4=z4'l--z6'l--z6r--z4r;
+fill p1--lineintersection(1l,2l,3r,4r)--p3--lineintersection(3l,4l,1l,2l)
+ --p2--lineintersection(1r,2r,3l,4l)--p4--lineintersection(3r,4r,1r,2r)--cycle;
+penlabels(0,1,1',2,2',3,3',4,4',5,5',6,6',7,8); endchar;
+
+cmchar "The letter y";
+beginchar("y",w_strokes(2),x_height#,desc_depth#);
+italcorr x_height#*slant+.25u#;
+adjust_fit(0,0);
+path p[];
+nibstempos2; nibstempos3; nibstempos4;
+x2l=u; x3r=x4r=w-u;
+y1=y3=x_height+o; y4=-o;
+u_stroke_path1(4,a,2,1);
+nibhairpos5; y5l=-d-o; x5=x1l;
+p1=diamond_serif_path(1,2,b);
+p3=diamond_serif_path(3,4,c);
+p4=sweep_serif_path(4,3,e,5);
+fill combine(lpath1,p3--p4)--var_combine(p3--p4,rpath1)--p1--cycle;
+penlabels(0,1,2,3,4,5); endchar;
+
+cmchar "The letter z";
+beginchar("z",w_open_strokes,x_height#,desc_depth#);
+italcorr x_height#*slant-.5serif_fit#-.3u#;
+adjust_fit(0,0);
+nibhairs(1,4,7);
+nibthinstems(3,5);
+nibstems(6);
+x1r=.5u; x3r=x6r=w-u; x4r=.5u;
+y2r=h+o; x2r=.5[x1r,x3r]; y6=0;
+y4r=.8bar_height;
+z5l=z4l;
+y7l=-d-o; x7r=.25u;
+angle_points(1,2,3,nib_dir,nib_draw_dir);
+z3'l=whatever[z2l,z3l]=z4r+whatever*(z3r-z4l);
+p6=sweep_serif_path(6,5,a,7);
+fill z1l--z2l--z3'l--z4r{-nib_draw_dir}...p6...{nib_draw_dir}z5r
+ --z3r--z2r--z1r--cycle;
+penlabels(1,2,3,3',4,5,6,7,8); endchar;

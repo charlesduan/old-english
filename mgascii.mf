@@ -1,0 +1,165 @@
+%
+% mgascii.mf
+%
+% Extra ASCII characters
+%
+cmchar "Greater than symbol";
+beginchar(">",5u#,x_height#,0);
+italcorr 0;
+adjust_fit(0,0);
+numeric thickness; thickness=rule_thickness;
+disable_transforms_around((0,math_axis));
+pos1(thickness,90); pos2(thickness,90); pos3(thickness,90);
+y1r=h+oo; y2=math_axis=.5[y1,y3];
+x1=x3=.5slant*y1r; x2=w;
+z=whatever[z1l,z2l]=whatever[z2r,z3r];
+fill pen_pointend(2r,1r,fine,1l,2l)--z--pen_pointend(2r,3r,fine,3l,2l)
+ --pen_pointend(3l,2l,fine,2r,1r)--cycle;
+penlabels(1,2,3);
+endchar;
+
+
+cmchar "Less than symbol";
+beginchar("<",5u#,x_height#,0);
+italcorr 0;
+adjust_fit(0,0);
+numeric thickness; thickness=rule_thickness;
+disable_transforms_around((0,math_axis));
+pos1(thickness,90); pos2(thickness,90); pos3(thickness,90);
+x1=x3=w-.5slant*y1r; x2=0;
+y1r=h+oo; y2=math_axis=.5[y1,y3];
+z=whatever[z1l,z2l]=whatever[z2r,z3r];
+fill reverse (pen_pointend(2r,1r,fine,1l,2l)--z--pen_pointend(2r,3r,fine,3l,2l)
+ --pen_pointend(3l,2l,fine,2r,1r)--cycle);
+penlabels(1,2,3);
+endchar;
+
+cmchar "Caret";
+beginchar("^",4u#,cap_height#-vair#,0);
+italcorr 0;
+adjust_fit(0,0);
+numeric thickness; thickness=rule_thickness;
+pos1(thickness,180); pos2(thickness,180); pos3(thickness,180);
+y1=y3=.7x_height; y2=h+oo;
+x1r=0; x3l=w; x2=.5[x1,x3];
+z=whatever[z1l,z2l]=whatever[z2r,z3r];
+disable_transforms_around((0,.9y1));
+fill pen_pointend(2r,1r,fine,1l,2l)--z--pen_pointend(2r,3r,fine,3l,2l)
+ --pen_pointend(3l,2l,fine,2r,1r)--cycle;
+penlabels(1,2,3);
+endchar;
+
+cmchar "Underscore";
+beginchar("_",4u#,rule_thickness#,0);
+italcorr 0;
+adjust_fit(0,0);
+pos1(.9rule_thickness,90); pos2(.9rule_thickness,90);
+y1l=y2l=-.57desc_depth; x1=0; x2=w;
+fill pen_rlend1(left,fine,right)--pen_lrend2(right,fine,left)--cycle;
+penlabels(1,2);
+endchar;
+
+
+cmchar "Section sign";
+beginchar(oct"247",6.5u#+max(1.5u#,stem#),asc_height#,.35desc_depth#);
+adjust_fit(0,0);
+numeric sect_ratio; sect_ratio=2.7;
+numeric theta; theta=90-angle(sect_ratio * w,h); slope:=-h/(sect_ratio * w);
+numeric s_slab; s_slab=if serifs:.8vair else:Vround .1[vair,stem] fi;
+numeric ess'; ess'=max(fine.breadth,stem);
+numeric sstem; sstem=hround .75[hair,stem];
+numeric sect_gap; sect_gap=thick_hair;
+pos2(max(fine.breadth,s_slab-vround vair_corr),-100);
+pos12(max(fine.breadth,s_slab-vround vair_corr),180-100);
+pos0(ess',theta);
+pos10(ess',180+theta);
+x2l=.5w; y2l=h+oo;
+x10+x0=w; x12l+x2l=w; y12l=-d-oo;
+y2-y0=1.2(y0-y10)=y10-y12;
+x3l=sect_gap; x3r-x3l=.5[s_slab,ess'];
+x13l+x3l=w; x13r+x3r=w;
+pos7(max(fine.breadth,s_slab-vround vair_corr),-100);
+pos17(max(fine.breadth,s_slab-vround vair_corr),180-100);
+z0=.5[z2,z7]; z10=.5[z12,z17];
+x6r=w; x6r-x6l=x3r-x3l;
+x0=.5[x3l,x6r];
+x16l+x6l=w; x16r+x6r=w;
+ellipse_set(2l,3l,4l,0l); ellipse_set(2r,3r,4r,0r); y3=y3r;
+ellipse_set(12l,13l,14l,10l); ellipse_set(12r,13r,14r,10r); y13=y13r;
+ellipse_set(7l,6l,5l,0l); ellipse_set(7r,6r,5r,0r); y6=y6r;
+ellipse_set(17l,16l,15l,10l); ellipse_set(17r,16r,15r,10r); y16=y16r;
+z3'l=z3r;z3'r=z3l; z13'l=z13r; z13'r=z13l; y3'=y3r; y13'=y13r;
+y2'r=y2l; y12'r=y12l;
+pos1(thick_hair,0); pos9(.8small_flare,0);
+pos11(thick_hair,180); pos19(.8small_flare,180);
+x9r=w-sect_gap; x19r+x9r=w;
+set_bulb_points(y2l-y2r,.5,.8, 3',2',1,9);
+p9=bulb_path(2',1,9,right);
+set_bulb_points(y12r-y12l,.5,.8, 13',12',11,19);
+p19=bulb_path(12',11,19,left);
+make_paths2(rev.l) super_arc.e(2',3');
+make_paths12(rev.l) super_arc.e(12',13');
+make_paths3(rev.r) z3e{down}..z4e---z0e;
+make_paths5(rev.l) super_arc.e(7,6) & z6e{up}..z5e---z0e;
+make_paths13(rev.r) z13e{up}..z14e--z10e;
+make_paths15(rev.l) super_arc.e(17,16) & z16e{down}..z15e---z10e;
+fill rpath3 & lpath2 & p9 & rpath2 & combine(lpath3,rpath15)
+ & rpath13 & lpath12 & p19 & rpath12 & combine(lpath13,rpath5) & cycle;
+unfill combine(lpath15,lpath3) & combine(lpath5,lpath13) & cycle;
+penlabels(0,1,2,3,4,5,6,7,8,9,10,12,13,14,15,16,17,19); endchar;
+
+
+cmchar "Paragraph mark";
+beginchar(oct"266",11u#,asc_height#-.3slab#,.66desc_depth#);
+adjust_fit(0,0);
+numeric thin_slab; thin_slab=.7slab;
+save slab; slab=thin_slab;
+numeric thin_stem; thin_stem=.5[thick_hair,stem];
+penpos7(thin_stem,0); penpos8(thin_stem,0);
+rulepos1(90); rulepos2(180); rulepos5(270);
+penpos4(thin_stem,0); penpos6(thin_stem,0);
+y1r=y9r=h; y6=y8=-d-eps; y4=h-slab; y7=h;
+y5r=vround(.43[y1,y6]-.5rule_thickness); y2=.5[y1,y5];
+x2r=0; x5=x4l; x9=hround(w-.5u);
+x7l-x4r=thin_stem; x8=x7; x6=x4;
+x7r=w-jut; x1=min(.5w,x4l);
+p7=serif_path(7,8,a,1/3,jut,right);
+fill p7--z1r{left}...z2r{down}...{right}z5r--lrend(6)--z4r
+    --(x8l,y4r)--lrend(8)--cycle;
+penlabels(1,2,4,5,6,7,8,9); endchar;
+
+cmchar "Space";
+beginchar(oct"040",6u#,0,0);
+adjust_fit(0,0);
+%fill (0,0)--(w,0)--(w,vair)--(vair,0)--cycle;
+endchar;
+
+cmchar "Bullet";
+beginchar(oct"177",9u#,v_center(7u#));
+adjust_fit(0,0); autorounded;
+draw_solid_circle(w,w, (.5w,max(.5w,.75x_height)), w);
+labels(1,2,3,4,5,6,7,8); endchar;
+
+cmchar "Single quote";
+beginchar(oct"203",3u#,asc_height#,0);
+adjust_fit(0,0);
+numeric straight_quote_width; straight_quote_width=stem;
+pos1(straight_quote_width,0); pos2(hair,0); x0=x1=x2=.5w;
+y0=h; y1=h-straight_quote_width; y2=h-1.5comma_depth;
+disable_transforms_around((0,.8[y2,y1]));
+fill z1r...z0...z1l---z2l...z2r---cycle;
+penlabels(1,2); endchar;
+
+cmchar "Double quote";
+beginchar(oct"042",6u#,asc_height#,0);
+adjust_fit(0,0);
+pos1(straight_quote_width,0); pos2(hair,0); x0=x1=x2;
+y0=h; y1=h-straight_quote_width; y2=h-1.5comma_depth;
+pos11(straight_quote_width,0); pos12(hair,0); x10=x11=x12;
+y10=h; y11=h-straight_quote_width; y12=h-1.5comma_depth;
+.5[x1,x11]=.5w; x11l-x1r=stem;
+disable_transforms_around((0,.8[y2,y1]));
+fill z1r...z0...z1l---z2l...z2r---cycle;
+fill z11r...z10...z11l---z12l...z12r---cycle;
+penlabels(0,1,2,10,11,12); endchar;
+

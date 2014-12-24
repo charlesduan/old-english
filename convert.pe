@@ -1,0 +1,5 @@
+#!/usr/bin/env fontforge -script
+Open($1)
+SelectAll()
+AutoHint()
+Generate($1:r + ".otf")

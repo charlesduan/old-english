@@ -1,0 +1,143 @@
+% THIS IS THE OFFICIAL COMPUTER MODERN SOURCE FILE romanp.mf BY D E KNUTH.
+% IT MUST NOT BE MODIFIED IN ANY WAY UNLESS THE FILE NAME IS CHANGED!
+
+% This file contains `\$' and `\&' and `?' in the so-called roman style.
+
+% Codes \0044, \0046, and \0077 are generated, as well as code |spanish_query|
+% (for a Spanish question mark) if that code value is known.
+
+cmchar "Dollar sign";
+beginchar("$",9u#,body_height#,body_height#-asc_height#);
+italcorr fig_height#*slant-.5u#; % same as for digits
+adjust_fit(0,0);
+numeric rel_slant; rel_slant=22u;
+numeric theta; theta=90-angle(rel_slant,asc_height);
+slope:=-asc_height/rel_slant;
+pos2(vair,-90);
+pos0(cap_stem,theta); pos7(slab,-90);
+x2=x0=x7=.5w; y2l=cap_height-.5hair; y7r=-.5[oo,o];
+y0=.52[y7r,y2l]; x3l=.4u; x6r=w;
+x3r-x3l=x6r-x6l=hround .35[slab,cap_stem]-fine;
+ellipse_set(2l,3l,4l,0l); ellipse_set(2r,3r,4r,0r); y3=y3r;
+ellipse_set(7l,6l,5l,0l); ellipse_set(7r,6r,5r,0r); y6=y6r;
+make_paths3456(rev.r) z3e{down}..{z5e-z4e}z0e..z6e{down};  % main stroke
+if serifs: pos1(hair,0); pos8(hair,180);
+ pos10(.5[small_flare,flare],0); pos9(.5[small_flare,flare],180);
+ y2'r=y2l; x10r=hround(w-.3u);
+ set_bulb_points(y2l-y2r,.6,.66, 3,2',1,10);
+ p10=bulb_path(2',1,10,right);  % upper arc and bulb
+ z3'r=z3l;z3'l=z3r;
+ make_paths23(rev.l) super_arc.e(2',3');
+ y7'r=y7r; x9r=0; 
+ set_bulb_points(y7l-y7r,.5,.75, 6,7',8,9);
+ p9=bulb_path(7',8,9,left);
+ make_paths67(rev.r) super_arc.e(6,7');
+else: pos1(.6[slab,flare],-100); pos8(flare,-100);
+ rt x1l=hround(w-1.3u); lft x8r=hround .8u;
+ top y1l=vround .92asc_height+oo; bot y8r=vround .1asc_height-oo;
+ filldraw stroke term.e(2,1,right,.9,4);  % upper arc and terminal
+ filldraw stroke term.e(7,8,left,1,4); fi  % lower arc and terminal
+pos12(bar,0); pos11(bar,0);
+x12l=x11l=hround(.51w-.5bar); y12=y2l+2vair; y11=y7r-3.5vair;
+fill p10 & rpath23 & lpath3456 & lpath67 & p9 & rpath67 & rpath3456 & lpath23
+ & cycle;
+fill pen_rlend12(up,crisp,down)--pen_lrend11(down,crisp,up)--cycle;
+penlabels(0,1,2,3,4,5,6,7,8,9,10,11,12); endchar;
+
+cmchar "Ampersand";
+beginchar("&",14u#,asc_height#,0);
+italcorr x_height#*slant-serif_fit# - if serifs: .4u# else: 1.5u# fi;
+adjust_fit(0,serif_fit#);
+pos2(.3[thick_vair,stem],-90); x2=3.3u; x2l:=4.5u; y2r=-o;
+if serifs: pos0(.3[thick_hair,stem],0);
+ x0r+.9jut=w; y0=.88x_height;
+ pair amp_stem_dir; amp_stem_dir=dir 70;
+ pos1(x0r-x0l,0); z1r=z0r+whatever*amp_stem_dir; y1=.63x_height;
+ pos1'(thick_hair,angle(z1-z2)-90);
+ z1'=.5[z1,z2] + (2thick_hair,0) rotated (angle(z1-z2)-90);
+ p1=z2r{right}..z1'r..{amp_stem_dir}z1r;
+ p2=z1l{down}..z1'l..z2l{left};
+ pos0'(x0r-x0l,0); x0'l=x1l; y0=y0';
+else: pickup fine.nib; pos1(.25[slab,flare],-15); rt x1r=hround(w-2u);
+ y1r=good.y .75[bar_height,x_height]; x1l:=good.x x1l; y1l:=good.y y1l;
+ top z2'l=(x2l,tiny.top y2l); bot z2'r=(x2r,tiny.bot y2r);
+ filldraw stroke term.e(2',1,right,1,4); fi  % short diagonal and terminal
+numeric slope,theta,reduced_hair;
+slope=(h-2vair-slab)/17.5u; theta=angle(-slope,1);
+reduced_hair=max(tiny.breadth,hround(fudged.hair if hefty:-2stem_corr fi));
+x3r=0; x5=.5[x3r,x6l]; x6r=hround .6w;
+x3l-x3r=curve; pos6(.5[thick_hair,stem],180);
+pos5(vair,theta); y5=.6h;
+ellipse_set(2l,3l,4l,5l); ellipse_set(2r,3r,4r,5r);
+pos7(vair,270); y7l=h; x7=.45[x6r,x8r];
+pos8(stem*sqrt(2),45); x8=3.25u; y8r=y6;
+ellipse_set(7l,6l,5',5l);
+make_paths2(rev.r) z2e{left}...z3e{up}...z4e---z5e...{up}z6e
+ ...z7e{left}...z8e{down};  % bowls
+pos10(.5[thick_vair,stem],90); x10=w-2.5u; y10l=-o;
+x10r:=x10+.5u;
+pos9(curve,angle(z8-z10)-90);
+z9=.5[z8,z10]+(.8stem,0) rotated(angle(z8-z10)+90);
+make_paths8(rev.r) z8e{down}...z9e{z10-z8}...{right}z10e;  % long diagonal
+if serifs:
+ pos11(fudged.hair,180); x11l=w; y11=.63bar_height;
+ pair amp_term_dir; amp_term_dir=dir 88;
+ p10=z10l{right}
+  ...{amp_term_dir}pen_lrend11(amp_term_dir,fine,-amp_term_dir){-amp_term_dir}
+  ...z10r{left};
+ p0=serif_path(0,1,b,1/3,.9jut,right)
+  --serif_path(0',1,a,1/2,1.2jut,left);
+else: z10'r=z10l; z10'l=z10r;
+ pos11(Vround .5[slab,flare],90);
+ x11=hround(r-letter_fit-u); y11l=vround .07bar_height-o;
+ filldraw stroke term.e(10',11,right,1,4); fi  % terminal
+fill p0--combine(combine(p2,rpath8),lpath2)
+ & combine(lpath8,rpath2) & combine(p1,lpath8) & p10
+ & combine(rpath8,p1)--cycle;
+unfill combine(combine(lpath2,lpath8),p2) & cycle;
+unfill combine(rpath2,rpath8) & cycle;
+penlabels(0,1,1',2,3,4,5,6,7,8,9,10,11); endchar;
+
+cmchar "Question mark";
+beginchar("?",8.5u#,asc_height#,0);
+italcorr .8asc_height#*slant;
+adjust_fit(0,0);
+pos7(dot_size,0); pos8(dot_size,90);
+x7l=hround(.52w-.25u-.5dot_size); y8l=-dot_o; z7=z8; dot(7,8);  % dot
+numeric bot_width;
+bot_width=if hefty:max(hround .8dot_size,fine.breadth) else: thick_hair fi;
+pos2(vair,90); pos3(curve,0);
+pos4(vair,-90); pos5(bot_width,0); pos6(bot_width,0);
+x2=x4=x5=x6=x7; x3r=w; y6=.22[top y8r,x_height];
+y2r=h; y3=.75[y6,y2]; y4=.5[y6,y2]; y5=.1[y6,y2];
+{{interim superness:=more_super;
+make_paths1(rev.r) super_arc.e(2,3)
+ & subpath (0,1) of super_arc.e(3,4) .. {down}z5e\\}};  % arc and stem
+if serifs: pos1(hair,180); pos0(small_flare,180);
+ x0r=0; y1=y3; p0=bulb_path(2,1,0,right);  % bulb
+else: pos1(Vround 5/7[vair,flare],110);
+ lft x1r=hround u; top y1r=vround .9[y6,top y2r];
+ filldraw stroke term.e(2,1,left,1,4); fi  % terminal
+fill pen_lrend6(down,fine,up)--rpath1 & p0 & lpath1--cycle;
+penlabels(0,1,2,3,4,5,6,7,8); endchar;
+
+iff known spanish_query: cmchar "Spanish open question mark";
+beginchar(spanish_query,8.5u#,asc_height#-desc_depth#,desc_depth#);
+adjust_fit(0,0);
+pickup tiny.nib; pos7(dot_size,0); pos8(dot_size,90);
+lft x7l=hround(.5w-.25u-.5dot_size); top y8r=h; z7=z8; dot(7,8);  % dot
+numeric top_width;
+top_width=if hefty:max(hround .8dot_size,fine.breadth) else: hair fi;
+pickup fine.nib; pos2(vair,270); pos3(curve,180);
+pos4(vair,90); pos5(top_width,180); pos6(top_width,180);
+x2=x4=x5=x6=x7; lft x3r=hround u; top y6=.25[bot y8l,h-x_height]-1;
+bot y2r=-d-oo; y3=.75[y6,y2]; y4=.5[y6,y2]; y5=.1[y6,y2];
+{{interim superness:=more_super;
+filldraw stroke pulled_super_arc.e(2,3)(superpull)
+ & subpath (0,1) of super_arc.e(3,4) .. z5e---z6e\\}};  % arc and stem
+if serifs: pos1(hair,0); pos0(flare,0);
+ rt x1r=hround(w-u); y1=y3; bulb(2,1,0);  % bulb
+else: pos1(Vround 5/7[vair,flare],-70);
+ rt x1r=hround(w-u); bot y1r=vround .9[y6,bot y2r];
+ filldraw stroke term.e(2,1,right,1,4); fi  % terminal
+penlabels(0,1,2,3,4,5,6,7,8); endchar;

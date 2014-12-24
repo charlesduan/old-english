@@ -1,0 +1,222 @@
+% THIS IS THE OFFICIAL COMPUTER MODERN SOURCE FILE romlig.mf BY D E KNUTH.
+% IT MUST NOT BE MODIFIED IN ANY WAY UNLESS THE FILE NAME IS CHANGED!
+
+% This file describes five roman ligatures that begin with `f'
+% and puts them in code positions \0013--\0017.
+
+numeric itc#; % modified italic correction on `f' and `ff'
+itc#=if serifs: max(0,flare#-.25u#) else: 1.25u# fi;
+
+ligtable "f": "i"=:oct"014", "f"=:oct"013", "l"=:oct"015",
+ "'" kern itc#, "?" kern itc#, "!" kern itc#, ")" kern itc#, "]" kern itc#;
+ligtable oct"013": "i"=:oct"016", "l"=:oct"017",
+ "'" kern itc#, "?" kern itc#, "!" kern itc#, ")" kern itc#, "]" kern itc#;
+
+cmchar "The ligature ff";
+beginchar(oct"200",10.5u#+2letter_fit#,asc_height#,0);
+italcorr asc_height#*slant+if serifs:flare#-.25u# else: 1.25u# fi;
+adjust_fit(0,0);
+numeric left_jut,right_jut;
+left_jut=.7[multi_jut,jut]; right_jut=jut;
+pos1(stem',0); x1l=jut;
+pos11(stem',0);
+numeric bulb_diam, inner_jut;
+if serifs: bulb_diam=small_flare;
+ pos2(bulb_diam,0); pos12(bulb_diam,0);
+ x12r=w; x2r=.5[x11,x11r]; x12r-x11=f_stem_to_bulb_width; % Defined previously
+else: pos2(5/7[vair,flare],90); top y2r=h; rt x2=hround 6.25u;
+ pos12(5/7[vair,flare],90); y12=y2; rt x12=hround(w+.75u); fi
+p2=better_f_stroke_path(1,2,a,.66,.75); % left stem, arc
+p12=better_f_stroke_path(11,12,d,.75,1); % right stem, arc
+y3r=y4r=x_height; x3=0;
+pos3(bar,90); pos4(bar,90);
+x4=.5[x12l,x12];
+forsuffixes $=r,,l:
+ x15$=x16$=x11$;
+ y15$=y3r; y16$=y3l;
+ x5$=x6$=x1$;
+ y5$=y3r; y6$=y3l;
+endfor
+numeric inner_jut[];
+(inner_jut1,inner_jut2)=serif_inner_juts(.5,.28, 1,5,11,15);
+p1=dish_serif_path(1,5,b,1/3,left_jut,c,1/3,inner_jut1);
+p11=dish_serif_path(11,15,e,1/3,inner_jut2,f,1/3,right_jut);
+if hefty: pos3'(bar,90); x3'-x1=x4-x11; y3'=y3;
+ pos4'(bar,90); x4'=x11; y4'=y4;
+ filldraw stroke z3e--z3'e; filldraw stroke z4'e--z4e;  % bars
+fi
+fill p1--z6r--z16l--p11--z16r--pen_lrend4(right,crisp,left)--z15r
+ --combine(p12--z15l,subpath(6,infinity) of p2)--z5l
+ --pen_rlend3(left,crisp,right)--z6l--cycle;
+unfill z5r--combine(subpath(0,6) of p2,p12--z15l)--cycle;
+penlabels(1,2,3,4,5,6,11,12,15,16); endchar;
+
+cmchar "The ligature fi";
+beginchar(oct"231",10u#+2letter_fit#,asc_height#,0);
+italcorr asc_height#*slant-serif_fit#+.5if serifs:stem# else:dot_size# fi-2u#;
+adjust_fit(0,serif_fit#);
+numeric left_jut,right_jut;
+left_jut=.7[multi_jut,jut]; right_jut=.5[multi_jut,jut];
+pos1(stem',0); x1l=jut;
+pos11(stem',0); x11r=w-right_jut;
+pos12(stem',0); x11=x12; bot y12=0;
+numeric bulb_diam, inner_jut[];
+if serifs: bulb_diam=small_flare;
+ pos2(bulb_diam,0); x2r=.5[x12,x12r];
+ y11=x_height;
+else: bulb_diam=max(stem,dot_size);
+ pos2(6/7[vair,flare],90); top y2r=h; rt x2=hround 5.3u;
+ pickup tiny.nib; pos13(bulb_diam,0); pos14(bulb_diam,90);
+ x13=x11-.5; top y14r=min(10/7x_height+.5bulb_diam,h)+1; top y11=x_height;
+ if bot y14l-x_height<tiny: y14l:=min(y14r-eps,y11+2tiny); fi
+ x13=x14; y13=.5[y14l,y14r]; dot(13,14);  % dot
+fi;  % this is the ligature we're drawing
+y3r=y4r=x_height; x3=0;
+pos3(bar,90); pos4(bar,90);
+forsuffixes $=r,,l:
+ x5$=x6$=x1$;
+ y5$=y3r; y6$=y3l;
+endfor
+p1=better_f_stroke_path(1,2,a,.66,.8);
+numeric inner_jut[];
+(inner_jut1,inner_jut2)=serif_inner_juts(.5,.28, 1,5,12,11);
+if serifs: x4=x11;  % bar will overlap upper right serif
+else: rt x4= hround 5.3u; fi
+p12=dish_serif_path(12,11,e,1/3,inner_jut2,f,1/3,left_jut);  % lower right serif
+p2=dish_serif_path(1,5,b,1/3,left_jut,c,1/3,inner_jut1);
+fill p2--z6r--(x12l,y6r)--p12--pen_angle(up,z11r,tiny,left)
+ --z5r--p1--z5l--pen_rlend3(left,crisp,right)--z6l--cycle;
+penlabels(1,2,3,4,5,6,11,12,13,14); endchar;
+
+cmchar "The ligature fl";
+beginchar(oct"234",10u#+2letter_fit#,asc_height#,0);
+italcorr asc_height#*slant-serif_fit#+.5stem#-2u#;
+adjust_fit(0,serif_fit#);
+numeric left_jut,right_jut;
+left_jut=.7[multi_jut,jut]; right_jut=.5[multi_jut,jut];
+pos1(stem',0); x1l=jut;
+pos11(stem',0); x11r=hround(w-right_jut);
+pos12(stem',0); x11=x12; y12=0; y11=h;
+numeric bulb_diam, inner_jut;
+if serifs: bulb_diam=small_flare;
+ pos2(bulb_diam,0); x2r=.5[x11,x11r];
+ p11=sloped_serif_path.l(11,12,d,1/3,.2jut,serif_drop); % erase excess
+else: pos2(5/7[vair,flare],90); top y2r=h; rt x2=hround 5.3u; fi
+p2=better_f_stroke_path(1,2,a,.66,.8);
+y3r=y4r=x_height; x3=0;
+forsuffixes $=r,,l:
+ x5$=x6$=x1$;
+ y5$=y3r; y6$=y3l;
+endfor
+pos3(bar,90); pos4(bar,90);
+if serifs: x4=x12l;
+else: rt x4= hround 5.3u; fi
+numeric inner_jut[];
+(inner_jut1,inner_jut2)=serif_inner_juts(.5,.28, 1,5,12,11);
+p1=dish_serif_path(1,5,b,1/3,left_jut,c,1/3,inner_jut1);
+p12=dish_serif_path(12,11,e,1/3,inner_jut2,f,1/3,right_jut);  % lower right
+fill p1--z6r--z4l--p12
+ --combine(p11,subpath (6,infinity) of p2)
+ --z5l--pen_rlend3(left,crisp,right)
+ --z6l--cycle;
+unfill z5r--combine(subpath(0,6) of p2, (x11l,y2)--z4r)--cycle;
+penlabels(1,2,3,4,5,6,11,12); endchar;
+
+cmchar "The ligature ffi";
+beginchar(oct"201",15u#+4letter_fit#,asc_height#,0);
+italcorr asc_height#*slant-serif_fit#+.5if serifs:stem# else:dot_size# fi-2u#;
+adjust_fit(0,serif_fit#);
+numeric left_jut,right_jut;
+left_jut=.7[multi_jut,jut]; right_jut=.5[multi_jut,jut];
+pos1(stem',0); x1l=jut;
+pos11(stem',0);
+pos21(stem',0); x21r=w-right_jut;
+x21-x11=x11-x1;
+pos22(stem',0); x21=x22; y22=0;
+numeric bulb_diam, inner_jut;
+if serifs: bulb_diam=small_flare;
+ pos2(bulb_diam,0); x2r=.5[x11,x11r];
+ pos12(bulb_diam,0); x12r=.5[x21,x21r];
+ y21=x_height;
+else: bulb_diam=max(stem,dot_size);
+ pos2(5/7[vair,flare],90); top y2r=h; rt x2=hround 5.75u;
+ pos12(6/7[vair,flare],90); y12=y2; rt x12=hround(.5w+2.8u);
+ pickup tiny.nib; pos23(bulb_diam,0); pos24(bulb_diam,90);
+ x23=x21-.5; top y24r=min(10/7x_height+.5bulb_diam,h)+1; top y21=x_height;
+ if bot y24l-x_height<tiny: y24l:=min(y24r-eps,y21+2tiny); fi
+ x23=x24; y23=.5[y24l,y24r]; dot(23,24); fi  % dot
+p2=better_f_stroke_path(1,2,a,.66,.75); % left stem, arc, terminal, serif
+p12=better_f_stroke_path(11,12,d,.66,.8); % middle ditto
+y3r=y4r=x_height; x3=0;
+pos3(bar,90); pos4(bar,90);
+if serifs: x4=x21l;  % bar will overlap upper right serif
+else: rt x4=hround(.5w+2.8u); fi
+if hefty: pos3'(bar,90); x3'-x1=x4-x11; y3'=y3;
+ pos4'(bar,90); x4'=x11; y4'=y4;
+ filldraw stroke z3e--z3'e; filldraw stroke z4'e--z4e;  % bars
+fi
+forsuffixes $=r,,l:
+ x15$=x16$=x11$;
+ y15$=y3r; y16$=y3l;
+ x5$=x6$=x1$;
+ y5$=y3r; y6$=y3l;
+endfor
+numeric inner_jut[];
+(inner_jut1,inner_jut2)=serif_inner_juts(.5,.28, 1,5,11,15);
+p1=dish_serif_path(1,5,b,1/3,left_jut,c,1/3,inner_jut1);
+p11=dish_serif_path(11,15,e,1/3,inner_jut2,f,1/3,inner_jut1);
+p22=dish_serif_path(22,21,h,1/3,inner_jut2,i,1/3,right_jut); % lower right serif
+fill p1--z6r--z16l--p11--z16r--z4l--p22
+ --pen_angle(up,z21r,tiny,left)--z15r
+ --combine(p12--z15l,subpath(6,infinity) of p2)--z5l
+ --pen_rlend3(left,crisp,right)--z6l--cycle;
+unfill z5r--combine(subpath(0,6) of p2,p12--z15l)--cycle;
+penlabels(1,2,3,4,11,12,21,22,23,24); endchar;
+
+cmchar "The ligature ffl";
+beginchar(oct"202",15u#+4letter_fit#,asc_height#,0);
+italcorr asc_height#*slant-serif_fit#+.5stem#-2u#;
+adjust_fit(0,serif_fit#);
+numeric left_jut,right_jut;
+left_jut=.7[multi_jut,jut]; right_jut=.5[multi_jut,jut];
+pos1(stem',0); x1l=jut;
+pos11(stem',0);
+pos21(stem',0); x21r=w-right_jut;
+pos22(stem',0); x21=x22; y22=0; y21=h;
+x21-x11=x11-x1;
+numeric bulb_diam, inner_jut;
+if serifs: bulb_diam=small_flare;
+ pos2(bulb_diam,0); x2r=.5[x11,x11r];
+ pos12(bulb_diam,0); x12r=.5[x21,x21r];
+ p21=sloped_serif_path.l(21,22,g,1/3,.2jut,serif_drop); % erase excess
+else: pos2(5/7[vair,flare],90); top y2r=h; rt x2=hround 5.75u;
+ pos12(5/7[vair,flare],90); y12=y2; rt x12=hround(.5w+2.8u); fi
+p2=better_f_stroke_path(1,2,a,.66,.75); % left stem, arc, terminal, serif
+p12=better_f_stroke_path(11,12,d,.66,.8); % middle ditto
+y3r=y4r=x_height; x3=0;
+pos3(bar,90); pos4(bar,90);
+if serifs: x4=x21l;
+else: rt x4=hround(.5w+2.8u); fi
+if hefty: pos3'(bar,90); x3'-x1=x4-x11; y3'=y3;
+ pos4'(bar,90); x4'=x11; y4'=y4;
+ filldraw stroke z3e--z3'e; filldraw stroke z4'e--z4e;  % bars
+fi
+forsuffixes $=r,,l:
+ x15$=x16$=x11$;
+ y15$=y3r; y16$=y3l;
+ x5$=x6$=x1$;
+ y5$=y3r; y6$=y3l;
+endfor
+numeric inner_jut[];
+(inner_jut1,inner_jut2)=serif_inner_juts(.5,.28, 1,5,11,15);
+p1=dish_serif_path(1,5,b,1/3,left_jut,c,1/3,inner_jut1);
+p11=dish_serif_path(11,15,e,1/3,inner_jut2,f,1/3,inner_jut1);
+p22=dish_serif_path(22,21,h,1/3,inner_jut2,i,1/3,right_jut); % lower right serif
+fill p1--z6r--z16l--p11--z16r--z4l--p22
+ --pen_angle(up,z21r,tiny,left)--z15r
+ --combine(combine(p21,subpath(6,infinity) of p12--z15l),
+    subpath(6,infinity) of p2)--z5l
+ --pen_rlend3(left,crisp,right)--z6l--cycle;
+unfill z5r--combine(subpath(0,6) of p2,p12--z15l)--cycle;
+unfill z15r--combine(subpath(0,6) of p12,p21--z4r)--cycle;
+penlabels(1,2,3,4,11,12,21,22); endchar;

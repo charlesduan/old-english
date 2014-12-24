@@ -1,0 +1,66 @@
+% THIS IS THE OFFICIAL COMPUTER MODERN SOURCE FILE comlig.mf BY D E KNUTH.
+% IT MUST NOT BE MODIFIED IN ANY WAY UNLESS THE FILE NAME IS CHANGED!
+
+% This file defines characters common to roman and italic text fonts
+% that appear only when |ligs>0|.
+
+% Character codes \0042, \0055, \0134, \0173, and \0174 are generated.
+
+ligtable "`": "`"=:oct"134";
+ligtable "'": "'"=:oct"042", "?" kern 2u#, "!" kern 2u#;
+
+ligtable "-": "-"=:oct"173";
+ligtable oct"173": "-"=:oct"174";
+
+cmchar "Closing quotes";
+beginchar(oct"230",7u#+max(2u#,dot_size#),asc_height#,0);
+italcorr asc_height#*slant+dot_size#-4.1u#;
+adjust_fit(0,0);
+disable_transforms_around((w,h-.5comma_depth));
+x1=comma_jut; y2+.5dot_size=h;
+x2=w-.5dot_size; y2=y1;
+comma(1,a,dot_size,0,.88comma_depth); % left dot and tail
+comma(2,b,dot_size,0,.88comma_depth); % right dot and tail
+penlabels(1,2); endchar;
+
+cmchar "Hyphen";
+beginchar("-",6u#,x_height#,0);
+italcorr .5x_height#*slant-.5u#;
+adjust_fit(0,0);
+numeric thickness; thickness=if hefty:bar else:.75[hair,stem] fi;
+pos1(thickness,90); pos2(thickness,90);
+y1r=y2r=vround(.5h+.5thickness); x2=w;
+if monospace: x2=w-x1 else: x1=0 fi;
+fill pen_rlend1(left,crisp,right)--pen_lrend2(right,crisp,left)--cycle;
+penlabels(1,2); endchar;
+
+cmchar "Opening quotes";
+beginchar(oct"225",7u#+max(2u#,dot_size#),asc_height#,0);
+italcorr asc_height#*slant-.1u#;
+adjust_fit(0,0);
+disable_transforms_around((0,h-comma_depth));
+x2+comma_jut=w; y1+.5dot_size=h-comma_depth+o;
+x1=.5dot_size; y2=y1;
+ammoc(1,a,dot_size,0,.88comma_depth); % left dot and tail
+ammoc(2,b,dot_size,0,.88comma_depth); % right dot and tail
+penlabels(1,2); endchar;
+
+cmchar "En dash";
+beginchar(oct"222",9u#,x_height#,0);
+italcorr .61803x_height#*slant+.5u#;
+adjust_fit(0,0);
+numeric thickness; thickness=if hefty:bar else:.66[hair,stem] fi;
+pos1(thickness,90); pos2(thickness,90);
+y1r=y2r=vround(.5h+.5thickness); x1=0; x2=w;
+fill pen_rlend1(left,crisp,right)--pen_lrend2(right,crisp,left)--cycle;
+penlabels(1,2); endchar;
+
+cmchar "Em dash";
+beginchar(oct"233",18u#,x_height#,0);
+italcorr .61803x_height#*slant+.5u#;
+adjust_fit(letter_fit#,letter_fit#);
+numeric thickness; thickness=if hefty:bar else:.66[hair,stem] fi;
+pos1(thickness,90); pos2(thickness,90);
+y1r=y2r=vround(.5h+.5thickness); x1=0; x2=w;
+fill pen_rlend1(left,crisp,right)--pen_lrend2(right,crisp,left)--cycle;
+penlabels(1,2); endchar;

@@ -1,0 +1,1935 @@
+% THIS IS THE OFFICIAL MATHGEN SOURCE FILE mgbase.mf BY CHARLES DUAN.
+% IT IS BASED ON THE FILE cmbase.mf BY D E KNUTH.
+% IT MAY BE MODIFIED IN ANY WAY DESIRED BY THE USER.
+
+% The base file for Mathgen's Computer Modern (a supplement to {\tt plain.mf})
+
+oebase:=1; % when |oebase| is known, this file has been input
+
+let cmchar=\; % `|cmchar|' should precede each character
+let generate=input; % `|generate|' should follow the parameters
+
+vardef sc_ital.glyph_width = glyph_width[charcode]sc# enddef;
+vardef sc_ital.left_sidebearing =
+    left_sidebearing[charcode]italic# * cap_height# / orig_cap_height#
+enddef;
+vardef sc_ital.right_sidebearing =
+    right_sidebearing[charcode]italic# * cap_height# / orig_cap_height#
+enddef;
+vardef get_metric@#=
+ if small_caps:
+    if slant>0: sc_ital@# else: @#[charcode]sc# fi
+ elseif slant>0:
+    @#[charcode]italic#
+ else:
+    @#[charcode]roman#
+ fi
+enddef;
+
+vardef bold_width_expansion=
+ if known width_expansion[charcode]: width_expansion[charcode]
+ elseif known width_expansion: width_expansion
+ else: 1 fi
+enddef;
+
+vardef w_strokes(expr num) = 2u#+stem#*num+2u#*(num-1) enddef;
+vardef w_open_strokes = 2u#+2stem#+.5u# enddef;
+
+def beginchar(expr c,w_sharp,h_sharp,d_sharp) =
+ begingroup
+ charcode:=if known c: byte c else: 0 fi;
+ if known get_metric.glyph_width:
+  charwd:=get_metric.glyph_width * bold_width_expansion;
+ else:
+  charwd:=w_sharp;
+ fi
+ charht:=h_sharp;       chardp:=d_sharp;
+ w:=charwd*pt; h:=charht*pt; d:=chardp*pt;
+ charic:=0; clearxy; clearit; clearpen;
+ save p; path p[];
+ scantokens extra_beginchar;
+ if known bp_per_pixel:
+    def to_bp (expr num) = decimal (round (num*bp_per_pixel)) enddef;
+    special "% MF2PT1: font_size " & decimal designsize;
+    special "% MF2PT1: font_slant " & decimal font_slant_;
+    for fvar = "font_identifier", "font_coding_scheme", "font_version",
+      "font_comment", "font_family", "font_weight", "font_unique_id",
+      "font_name":
+      if known scantokens (fvar & "_"):
+        special "% MF2PT1: " & fvar & " " & scantokens (fvar & "_");
+      fi;
+    endfor;
+    for fvar = "font_underline_position", "font_underline_thickness":
+      if known scantokens (fvar & "_"):
+        special "% MF2PT1: " & fvar & " " &
+          scantokens ("decimal " & fvar & "_");
+      fi;
+    endfor;
+    special "% MF2PT1: font_fixed_pitch " &
+            (if font_fixed_pitch_: "1" else: "0" fi);
+  fi
+ enddef;
+
+% For fun
+% Turn on these two macros, and you get to see the outline of characters instead
+% of the filled-in versions.
+%def fill=pickup pencircle scaled .2rule_thickness; draw enddef;
+%def unfill=pickup pencircle scaled .2rule_thickness; draw enddef;
+
+% Turn these two on to make sure you never accidentally use filldraw or draw.
+def filldraw = hide(show "Oops") fill enddef;
+%def draw = hide(show "Oops") gobble enddef;
+
+% Turn these on if you want to ensure the direction of your strokes.
+%def fill expr c =
+%if turningnumber c<0: errmessage("Negative turning number"); fi
+%addto_currentpicture contour c.t_ enddef;
+%def unfill expr c =
+%if turningnumber c>0: errmessage("Positive turning number for unfill"); fi
+%addto_currentpicture contour c.t_ withweight _ enddef;
+
+
+
+autorounding:=0; smoothing:=0; % we do our own rounding
+def autorounded = interim autorounding:=2 enddef;
+
+pair nib_dir;
+pair nib_draw_dir;
+newinternal nib_angle;
+
+newinternal slant,fudge,math_spread,superness,superpull,beak_darkness,ligs;
+newinternal O_superness,miter_ratio;
+newinternal multi_jut;
+boolean square_dots,hefty,serifs,
+ monospace,variant_g,low_asterisk,math_fitting;
+
+% New booleans
+boolean square_ends;
+
+boolean dark,dark.dark,skewed,skewed.skewed; % for fast option testing
+dark=skewed=false; dark.dark=skewed.skewed=true;
+
+def arctensed = .. tension atleast arc_tension .. enddef;
+
+vardef Vround primary y = y_:=vround y;
+ if y_<min_Vround: min_Vround else: y_ fi enddef;
+newinternal y_,min_Vround;
+
+%
+% Computes the inner juts between two downward or angled strokes.
+vardef serif_inner_juts(expr bias,gap)(suffix $,@,$$,@@) =
+ special_serif_inner_juts(bias,gap,$,@,$$,@@,$$)
+enddef;
+vardef special_serif_inner_juts(expr bias,gap)(suffix $,@,$$,@@,$$$) =
+ if serifs:
+  save p_; pair p_, p_.offset[];
+  % p_ is the intersection point between the two strokes
+  % We use p_.jut=(left jut, right jut), computed as follows:
+  % First, the gap between the juts should be centered with respect to p_.
+  bias[x$,x$$$]=.5[x$r+xpart p_,x$$l-ypart p_];
+  % Next, the gap between the juts should be 1/3 of the space between the
+  % strokes.
+  ypart(p_)+xpart(p_)=(1-gap) * (x$$l-x$r);
+  p_.offset1=whatever * (z@r-z$r);
+  p_.offset2=whatever * (z@@l-z$$l);
+  if y$r>y@r:
+   ypart(p_.offset1)=ypart(p_.offset2)=-slab;
+  else:
+   ypart(p_.offset1)=ypart(p_.offset2)=slab;
+  fi
+  (xpart p_-xpart p_.offset1, ypart p_+xpart p_.offset2)
+ else:
+  (0,0)
+ fi
+enddef;
+
+vardef serif(suffix $,$$,@)  % serif at |z$| for stroke from |z$$|
+  (expr darkness,jut) suffix modifier =
+ pickup crisp.nib; numeric bracket_height; pair downward;
+ bracket_height=if dark.modifier: 1.5 fi\\ bracket;
+ if y$<y$$: y@2=min(y$+bracket_height,y$$);
+  top y@1-slab=bot y@0+eps=tiny.bot y$; downward=z$-z$$;
+  if y@1>y@2: y@2:=y@1; fi
+ else: y@2=max(y$-bracket_height,y$$);
+  bot y@1+slab=top y@0-eps=tiny.top y$; downward=z$$-z$;
+  if y@1<y@2: y@2:=y@1; fi fi
+ y@3=y@2; z@3=whatever[z$,z$$];
+ if jut<0: z@2+penoffset downward of currentpen =
+   z$l+penoffset downward of pen_[tiny.nib]+whatever*downward;
+  lft x@0=lft x@1=tiny.lft x$l+jut;
+  if x@3<x@2+eps: x@3:=x@2+eps; fi
+ else: z@2-penoffset downward of currentpen =
+   z$r-penoffset downward of pen_[tiny.nib]+whatever*downward;
+   rt x@0=rt x@1=tiny.rt x$r+jut;
+   if x@3>x@2-eps: x@3:=x@2-eps; fi fi
+ pair corner; ypart corner=y@1; corner=z@2+whatever*downward;
+ filldraw z@2{z$-z$$}
+  ...darkness[corner,.5[z@1,z@2] ]{z@1-z@2}
+  ...{jut,0}z@1--z@0--(x$,y@0)--z@3--cycle; % the serif
+ labels (@1,@2); enddef;
+
+vardef serif_path(suffix $,$$,@)
+  (expr darkness,jut,jut_dir) suffix modifier =
+ if serifs:
+  serif_path_($,$$,@,darkness,jut * xpart jut_dir)modifier
+ else:
+  if (z$$-z$) rightof jut_dir: reverse fi
+  (if jut_dir rightof up: pen_angle(right,z$r,tiny,z$$r-z$r)
+  else: pen_angle(left,z$l,tiny,z$$l-z$l) fi)
+ fi
+enddef;
+
+def serif_points_(suffix $,$$,@)(expr jut) suffix modifier =
+ save vertical,bracket_height; pair vertical;
+ vertical=unitvector(0,y$$-y$);
+ bracket_height=min(.9abs(y$$-y$),max(slab,if dark.modifier: 1.5 fi bracket));
+ y@0=y$; z@1=z@0+slab*vertical; y@3=y@1; y@2=y@0+bracket_height*ypart vertical;
+ if jut>0: z@2=whatever[z$r,z$$r]; z@3=whatever[z$r,z$$r]; x@0=max(x$r,x@3)+jut;
+ else: z@2=whatever[z$l,z$$l]; z@3=whatever[z$l,z$$l]; x@0=min(x$l,x@3)+jut; fi
+ labels(@1,@2);
+enddef;
+
+vardef internal_serif_path(suffix $,$$,$$$,@)(expr darkness,jut)suffix modifier=
+ if serifs:
+  save vertical,bracket_height; pair vertical;
+  vertical=unitvector(0,y$$-y$);
+  bracket_height=min(.4abs(y$$-y$),max(slab,if dark.modifier: 1.5 fi bracket));
+  y@0=y$; z@1=(x@0,y$$$); y@3=y@1; y@2=y@0+bracket_height*ypart vertical;
+  if jut>0:
+   z@2=whatever[z$r,z$$r]; z@3=whatever[z$r,z$$r]; x@0=max(x$r,x@3)+jut;
+  else:
+   z@2=whatever[z$l,z$$l]; z@3=whatever[z$l,z$$l]; x@0=min(x$l,x@3)+jut;
+  fi
+  labels(@1,@2);
+  if (z$$-z$) rightof (jut,0): reverse fi
+   (if (darkness=0) or (y@1=y@2): z@1--z@3--z@2
+   else: z@1{z@3-z@1}...darkness[z@3,.5[z@1,z@2] ]{z@2-z@1}...{z@2-z@3}z@2 fi)
+ else:
+  z@3=whatever[z$r,z$$r]; y@3=y$$$;
+  labels(@3);
+  z@3
+ fi
+enddef;
+
+vardef bracket_path(expr in_dir,in_pt)(suffix @)(expr darkness,out_pt,out_dir)=
+ z@1=in_pt+whatever*in_dir=out_pt+whatever*out_dir;
+ z@2=if abs(z@1-in_pt)>bracket: z@1+bracket*dir(angle(in_pt-z@1))
+  else: in_pt fi;
+ z@3=if abs(z@1-out_pt)>bracket: z@1+bracket*dir(angle(out_pt-z@1))
+  else: out_pt fi;
+ labels(@1,@3,@2);
+ z@2{in_dir}...darkness[z@1,.5[z@2,z@3]]{z@3-z@2}...{out_dir}z@3
+enddef;
+
+vardef serif_path_(suffix $,$$,@)  % serif at |z$| for stroke from |z$$|
+  (expr darkness,jut) suffix modifier =
+ serif_points_($,$$,@,jut)modifier;
+ if (z$$-z$) rightof (jut,0): reverse fi
+ (pen_end(z@0-z$,z@0,crisp,z@1,z@3-z@1){z@3-z@1}...
+  if bracket_height=slab: z@3--z@2
+  else: darkness[z@3,.5[z@1,z@2] ]{z@2-z@1}...{z@2-z@3}z@2 fi)
+enddef;
+
+def dish_serif(suffix $,$$,@)(expr left_darkness,left_jut)
+  (suffix @@)(expr right_darkness,right_jut) suffix modifier =
+ serif($,$$,@,left_darkness,-left_jut) modifier;
+ serif($,$$,@@,right_darkness,right_jut) modifier;
+ if dish>0: pickup tiny.nib; numeric dish_out,dish_in;
+  if y$<y$$: dish_out=bot y$; dish_in=dish_out+dish; let rev_=reverse;
+  else: dish_out=top y$; dish_in=dish_out-dish; let rev_=relax; fi
+  erase fill rev_
+   ((x@1,dish_out)..(x$,dish_in){right}..(x@@1,dish_out)--cycle);
+ fi enddef;
+
+vardef diamond_serif_path(suffix $,$$,@) =
+ nibthinstems(@1,@2); x@1r=x@2l=x$; y@1l=y@2r;
+ if y$>y$$:
+  y@1r=y$;
+  z@3l=whatever[z$l,z$$l]=whatever[z@1l,z@2l];
+  z@3r=whatever[z$r,z$$r]=whatever[z@2l,z@2r];
+  penlabels(@1,@2,@3);
+  z@3r--z@2r--z@1r--z@1l--z@3l
+ else:
+  y@2l=y$;
+  z@3l=whatever[z$l,z$$l]=whatever[z@1l,z@1r];
+  z@3r=whatever[z$r,z$$r]=whatever[z@1r,z@2r];
+  penlabels(@1,@2,@3);
+  z@3l--z@1l--z@2l--z@2r--z@3r
+ fi
+enddef;
+
+vardef tail_serif_path(suffix $,$$,@)(expr width) =
+ pos@1(whatever, nib_angle);
+ z@1l=whatever[z$l,z$$l];
+ z@1r=whatever[z$r,z$$r];
+
+ pos@2(whatever, nib_angle);
+ x@2r-x@2l=x@1r-x@1l;
+ z@1=z@2+whatever * (nib_dir xscaled -1);
+ y@2l=y$l;
+
+ pos@4(hair, nib_angle - 90);
+ z@4r=z@2r+whatever*nib_dir;
+
+ z@3=z@4l+whatever*nib_dir=z@1r+whatever*(nib_dir xscaled -1);
+
+ .5[x@1l,x@4r]=x@2l;
+ x@4r-x@1l=width;
+ penlabels(@1,@2,@4);
+ labels(@3);
+ z@1l--z@2l--z@4r--z@4l--z@3--z@1r
+enddef;
+
+
+vardef dish_serif_path(suffix $,$$,@)(expr ld,lj)
+  (suffix @@)(expr rd,rj) suffix modifier =
+ if serifs:
+  dish_serif_path_($,$$,@,ld,lj,@@,rd,rj)modifier
+ else: if (z$$-z$) rightof right: reverse fi
+  (pen_lrend$(z$l-z$$l,tiny,z$$r-z$r)) fi
+enddef;
+
+vardef dish_serif_path_(suffix $,$$,@)(expr left_darkness,left_jut)
+  (suffix @@)(expr right_darkness,right_jut) suffix modifier =
+ serif_points_($,$$,@,-left_jut)modifier;
+ serif_points_($,$$,@@,right_jut)modifier;
+ if (z$$-z$) rightof (z@@0-z$): reverse fi
+ (if bracket_height=slab: z@2--z@3
+  else: z@2{z@3-z@2}...left_darkness[z@3,.5[z@1,z@2] ]{z@1-z@2} fi
+  ...{z@1-z@3}pen_end(z@1-z@3,z@1,crisp,z@0,z$-z@0){curl 1}
+  if dish>0: ..(.5[z@0,z@@0]+dish*vertical){z@@0-z@0}.. else: .. fi
+  {curl 1}pen_end(z@@0-z$,z@@0,crisp,z@@1,z@@3-z@@1){z@@3-z@@1}...
+  if bracket_height=slab: z@@3--z@@2
+  else: right_darkness[z@@3,.5[z@@1,z@@2] ]{z@@2-z@@1}...{z@@2-z@@3}z@@2 fi)
+enddef;
+
+def nodish_serif(suffix $,$$,@)(expr left_darkness,left_jut)
+  (suffix @@)(expr right_darkness,right_jut) suffix modifier =
+ serif($,$$,@,left_darkness,-left_jut) modifier;
+ serif($,$$,@@,right_darkness,right_jut) modifier; enddef;
+
+vardef sloped_serif.l(suffix $,$$,@)(expr darkness,jut,drop) =
+ pickup crisp.nib; pos@2(slab,90);
+ lft x@0=tiny.lft x$l; rt x@1=tiny.rt x$r; top y@1=tiny.top y$r;
+ lft x@2=lft x@0-jut; y@2r=y@1-drop;
+ y@0=y@2l-bracket-eps;
+ if drop>0: erase fill z@1--top z@1
+   --(x@2r,top y@1)--z@2r--cycle; fi % erase excess at top
+ filldraw z@1--z@2r--z@2l{right}
+  ...darkness[(x@0,y@2l),.5[z@2l,z@0] ]{z@0-z@2l}
+  ...{down}z@0--(x@1,y@0)--cycle;  % sloped serif
+ labels(@0,@1,@2); enddef;
+
+vardef sloped_serif_path.l(suffix $,$$,@)(expr darkness,jut,drop) =
+ penpos@2(slab,90);
+ x@0=x$l; z@1=z$r;
+ x@2=x@0-jut; y@2r=y@1-drop;
+ y@0=y@2l-bracket-eps;
+ labels(@0,@1,@2);
+ pen_end(up,z@1,crisp,z@2r,down)--pen_angle(down,z@2l,crisp,right){right}
+  ...darkness[(x@0,y@2l),.5[z@2l,z@0] ]{z@0-z@2l}...{down}z@0  % sloped serif
+enddef;
+
+vardef asc_serif_path(suffix $,$$,@) =
+ pos@1(whatever,nib_angle); x@1l=x$l-.3stem; x@1r=x$r; y@1r=y$;
+ z@2=(x$l,y@1l-vround(x$l-x@1l));
+ z@1r--z@1l{right}..{down}z@2
+enddef;
+
+vardef sweep_serif_path(suffix $,$$,@,$$$) =
+ same_pos(@1,$); z@1l=(x$l,y$);
+ penlabels(@1);
+ z@1l{down}..{-nib_dir}z$$$r--z$$$l{nib_dir rotated -10}..{up}z@1r
+enddef;
+
+vardef in_serif_path(suffix $,$$,@) =
+ same_pos(@1,$); pos@2(x$r-x$l,0);
+ x@1l=x$l-.75u; y@1r=y$;
+ z@2=whatever[z$,z$$]; y@2r=y@1r-nib_stem*ypart(nib_dir rotated 90);
+ nibhairpos@3; z@3r=z@1l;
+ z@2r{up}..{nib_dir rotated 90}z@1r--z@1l--z@3l{z@1r-z@1l}..{down}z@2l
+enddef;
+
+vardef in_squiggle_path(suffix $,@) =
+ same_pos(@1,$); pos@2(.8nib_stem,nib_angle); pos@3(nib_hair,nib_angle-90);
+ x@1=x@2+.75u=x$; x@3r=x$r;
+ y@3l=h; y@2l=x_height; y@3=1.5[y@1,y@2];
+ penlabels(@1,@2,@3);
+ z@1r{up}...z@2r{up}...{nib_dir}z@3r--z@3l{-nib_dir}...z@2l{down}...{down}z@1l
+enddef;
+
+vardef out_serif_path(suffix $,$$,@) =
+ same_pos(@1,$); pos@2(x$r-x$l,0);
+ x@1r=x$r+.75u;y@1l=y$;
+ z@2=whatever[z$,z$$]; y@2l=y@1l+nib_stem*ypart(nib_dir rotated 90);
+ nibhairpos@3; z@3l=z@1r;
+ penlabels(@1,@2,@3);
+ z@2l{z$l-z$$l}..{nib_dir rotated -90}z@1l--z@1r
+    --z@3r{z@1l-z@1r}..{z$$r-z$r}z@2r
+enddef;
+
+vardef right_hook_serif_path(suffix $,$$,@) =
+ nibhairpos$$;
+ same_pos(@3,$$); z@3=z$$+.25u*right;
+ pos@1(stem,nib_angle);
+ x@1l=x$l;
+ z@2l=(.45[x@1l,x@3l],-o);
+ angle_points(@1,@2,@3,nib_draw_dir,nib_dir);
+ x@1'l=x$l; y@1'l=y@1l+u;
+ z@1'r=whatever[z@1r,z@2r]; x@1'r=x$r;
+ penlabels(@1,@2);
+ z@1'l{down}..z@1l--z@2l--z@3l--z@3r--z@2r--z@1'r
+enddef;
+
+vardef sloped_serif.r(suffix $,$$,@)(expr darkness,jut,drop) =
+ pickup crisp.nib; pos@2(slab,-90);
+ rt x@0=tiny.rt x$r; lft x@1=tiny.lft x$l; bot y@1=tiny.bot y$l;
+ rt x@2=rt x@0+jut; y@2r=y@1+drop;
+ y@0=y@2l+bracket+eps;
+if drop>0: erase fill z@1--bot z@1
+  --(x@2r,bot y@1)--z@2r--cycle; fi % erase excess at bottom
+ filldraw z@1--z@2r--z@2l{left}
+  ...darkness[(x@0,y@2l),.5[z@2l,z@0] ]{z@0-z@2l}
+  ...{up}z@0--(x@1,y@0)--cycle;  % sloped serif
+ labels(@0,@1,@2); enddef;
+
+vardef sloped_serif_path.r(suffix $,$$,@)(expr darkness,jut,drop) =
+ pos@2(slab,-90);
+ x@0=x$r; x@1=x$l; y@1=y$l;
+ x@2=x@0+jut; y@2r=y@1+drop;
+ y@0=y@2l+bracket+eps;
+ labels(@0,@1,@2);
+ pen_end(down,z@1,crisp,z@2r,up)--pen_angle(up,z@2l,crisp,left){left}
+  ...darkness[(x@0,y@2l),.5[z@2l,z@0] ]{z@0-z@2l}
+  ...{up}z@0
+ enddef;
+
+vardef term.l(suffix $,$$)(expr d,t,s)= % ``robust'' sans-serif terminal
+ path p_; p_=z$l{d}..tension t..z$$l;
+ pair d_; d_=(x$$l-x$l,s*(y$$l-y$l));
+ if (abs angle direction 1 of p_ < abs angle d_)<>(x$l<x$$l):
+  p_:=z$l{d}..tension atleast t..{d_}z$$l; fi
+ p_ enddef;
+vardef term.r(suffix $,$$)(expr d,t,s)=
+ path p_; p_=z$r{d}..tension t..z$$r;
+ pair d_; d_=(x$$r-x$r,s*(y$$r-y$r));
+ if (abs angle direction 1 of p_ < abs angle d_)<>(x$r<x$$r):
+  p_:=z$r{d}..tension atleast t..{d_}z$$r; fi
+ p_ enddef;
+def rterm=reverse term enddef;
+
+def arm_set_points(suffix $,$$,@)(expr jut) =
+ x@0=good.x(x$$r-jut); y@0=y$r;
+ if serifs:
+  if (x$ > x$$) <> (y$ > y$$):
+   z@1=z$$l+whatever*(beak_inangle,1);
+  else:
+   z@1=z$$l+whatever*(beak_inangle,-1);
+  fi
+  y@1=y$l;
+  z@2=.5[z$l,z@1];
+ fi
+ penlabels(@0,@1,@2)
+enddef;
+
+vardef arm(suffix $,$$,@)(expr darkness,jut) =  % arm from |z$| to |z$$|
+ arm_set_points($,$$,@,jut);
+ if serifs:
+  path p_; p_= z$$l{z@1-z$$l}...darkness[z@1,.5[z@2,z$$l] ]...z@2
+    ---z$l--z$r--z@0--z$$r--cycle;
+  if (y$$>y$) <> (ypart precontrol 1 of p_ > ypart postcontrol 1 of p_):
+    p_:=z$$l{z@1-z$$l}...darkness[z@1,.5[z@2,z$$l] ]
+     ---z$l--z$r--z@0--z$$r--cycle; fi
+  filldraw p_; % arm and beak
+ else: filldraw z$l--z$r--z@0--z$$r--cycle; fi  % sans-serif arm
+enddef;
+
+vardef arm_path(suffix $,$$,@)(expr darkness,jut) =
+ path p_;
+ arm_set_points($,$$,@,jut);
+ if serifs:
+  p_= pen_angle(z@0-z$r,z@0,crisp,z$$r-z@0)
+    --pen_rlend$$(z$$r-z@0,crisp,z@1-z$$l){z@1-z$$l}
+    ...darkness[z@1,.5[z@2,z$$l] ]...{z$l-z@2}z@2;
+ else:
+  p_=pen_pointend($r,@0,crisp,$$r,$l);
+ fi
+ if (z$$r-z$$l) rightof (z$r-z$l): p_:=reverse p_; fi
+ p_
+enddef;
+
+vardef two_arm_path(suffix $,$$,@,$$$,$$$$,@@)(expr darkness) =
+ path p_[];
+ arm_set_points($,$$,@,0);
+ arm_set_points($$$,$$$$,@@,0);
+ if serifs:
+  p_1=pen_rlend$$(z$$r-z@0,crisp,z@1-z$$l){z@1-z$$l}
+    ...darkness[z@1,.5[z@2,z$$l] ]...{z$l-z@2}z@2;
+  p_2=pen_rlend$$$$(z$$$$r-z@@0,crisp,z@@1-z$$$$l){z@@1-z$$$$l}
+    ...darkness[z@@1,.5[z@@2,z$$$$l] ]...{z$$$l-z@@2}z@@2;
+ else:
+  p_1=pen_angle(z$$r-z$$$$r,z$$r,crisp,z$r-z$$r);
+  p_2=pen_angle(z$$$$r-z$$r,z$$$$r,crisp,z$$$r-z$$$$r);
+ fi
+ if (z$$r-z$$l) rightof (z$r-z$l):
+  reverse(p_1)--p_2
+ else:
+  reverse(p_2)--p_1
+ fi
+enddef;
+ 
+
+def angled_pos(suffix $)(expr out_dir)(suffix @)(expr in_dir)(suffix $$) =
+ forsuffixes e=l,r:
+  z@e=z$e+whatever*out_dir=z$$e+whatever*in_dir;
+  %x@e=x$e+whatever*xpart out_dir;
+  %if not known x@e: x@e=x$$e+whatever*xpart in_dir; fi
+  %y@e=y$e+whatever*ypart out_dir;
+  %if not known y@e: y@e=y$$e+whatever*ypart in_dir; fi
+ endfor
+ z@=0.5[z@r,z@l];
+enddef;
+
+%
+% Draws a notch cut at $$, for a stroke originating from $ and ending at $$$.
+vardef notch_cut_path(expr diff,nc)(suffix @,$,$$,$$$)=
+ save d_; pair d_[];
+ d_1=(z$$$-z$) scaled 1/abs(z$$$-z$);
+ d_2=if diff>y$$: up else: down fi;
+ if abs(y$$-diff)>nc:
+  z@a=whatever[z$,z$$]; z@b=whatever[z$$,z$$$];
+  y@=(diff-nc) * ypart d_2; x@=x$$;
+  y@a=y@b=2[y@,y$$];
+  labels(@,@a,@b);
+  z@a{z$$-z$}...{d_2}z@-.5d_1--z@+.5d_1{-d_2}...z@b{z$$$-z$$}
+ else:
+  z$$
+ fi
+enddef;
+  
+
+% Draws a sharply angled stroke where point $$ is the vertex and r is the
+% outside edge.
+vardef angled_stroke(suffix $, $$, $$$) =
+ save p_; pair p_.l,p_.r;
+ p_.l=whatever[z$l,z$$l]=whatever[z$$$l,z$$r];
+ p_.r=whatever[z$r,z$$r]=whatever[z$$$r,z$$l];
+ if (z$$-z$) rightof (z$r-z$l):
+  lrend($$$)--miter_angle(p_.r-z$$$r,p_.r,rule_thickness,z$r-p_.r)
+    --rlend($)--p_.l--cycle
+ else:
+  lrend($)--miter_angle(p_.r-z$r,p_.r,rule_thickness,z$$$r-p_.r)
+    --rlend($$$)--p_.l--cycle
+ fi
+enddef;
+
+% Given two lines defined by four points, draw the line that combines the two of
+% them. This is like combine, but for straight lines.
+vardef join_lines(suffix $,$$,@,@@) =
+ save p_; pair p_; p_=whatever[z$,z$$]=whatever[z@,z@@];
+ z$--p_--z@@
+enddef;
+
+% Given two points z$ and z$$, and y@, sets points z@ and z@@ such that:
+% .5[z@,z@@]=.5[z$,z$$];
+% length(z@r-z@@l) is miter_ratio*len
+def set_angled_point(suffix $,$$,@,@)(expr len) =
+ .5[x@,x@@]=.5[z$,z$$]; x@@l-x@r=miter_ratio*len enddef;
+
+vardef straight@#(suffix e)(text t) =
+ z.e.@#
+ forsuffixes next=t: -- z.next.@# endfor
+enddef;
+
+vardef rlend(suffix $) = z$r--z$l enddef;
+vardef lrend(suffix $) = z$l--z$r enddef;
+vardef rlthrough(suffix $)(expr e) = z$r--e--z$l enddef;
+vardef lrthrough(suffix $)(expr e) = z$l--e--z$r enddef;
+
+vardef rulepos@#(expr e) = penpos@#(rule_thickness, e) enddef;
+
+vardef trunc_path_end(expr p, t, endpt) =
+ save p_; path p_; p_ = subpath (0,t) of p;
+ save t_; t_ = ceiling t-1;
+ (subpath (0,t_) of p_)
+ .. controls (postcontrol t_ of p_) and (precontrol infinity of p_) .. endpt
+enddef;
+
+vardef trunc_end(expr main, cut) =
+ save t_; pair t_; t_=main intersectiontimes cut;
+ trunc_path_end(main, xpart t_, point ypart t_ of cut)
+enddef;
+
+% The "combine" macro combines two strokes at their intersection point.
+vardef combine(expr first, second) =
+ save t_; pair t_; t_=first intersectiontimes second;
+ trunc_path_end(first, xpart t_, point ypart t_ of second)
+    & (subpath (ypart t_, infinity) of second)
+enddef;
+
+% The var_combine macro does the same as combine, but the first path dominates
+% the subpath.
+vardef var_combine(expr first, second) =
+ save t_; pair t_; t_=first intersectiontimes second;
+ (subpath (0, xpart t_) of first)
+ & trunc_path_start(second, ypart t_, point xpart t_ of first)
+enddef;
+
+vardef trunc_path_start(expr p, t, startpt) =
+ save p_; path p_; p_ = subpath (t,infinity) of p;
+ startpt .. controls (postcontrol 0 of p_) and (precontrol 1 of p_)
+    .. (subpath(1, infinity) of p_)
+enddef;
+
+vardef trunc_cycle(expr main, aux) =
+ save l_, s_, t_; pair s_, t_; l_+1=length aux;
+ s_=main intersectiontimes subpath (0,1) of aux;
+ t_=main intersectiontimes subpath (l_,l_+1) of aux;
+ if (xpart s_=-1) or (xpart t_=-1): errmessage("Paths do not intersect"); fi
+ trunc_path_end(trunc_path_start(main, xpart s_, point ypart s_ of aux),
+	 xpart t_, point l_+ypart t_ of aux)
+  & subpath (l_+ypart t_, ypart s_) of aux & cycle
+enddef;
+
+vardef trunc_start(expr main, cut) =
+ save t_; pair t_; t_=main intersectiontimes cut;
+ trunc_path_start(main, xpart t_, point ypart t_ of cut)
+enddef;
+
+vardef trunc_both(expr mone, mtwo, cut) =
+ trunc_start(mone, cut) & trunc_end(mtwo, cut)
+enddef;
+
+vardef aux_left(text mainpath, auxpath) =
+ save t_, mpath_; numeric t_[];
+ path mpath_.l, mpath_.r;
+ forsuffixes e=l,r: mpath_.e:=mainpath; endfor
+ aux_stroke(mpath_.l, auxpath) -- reverse mpath_.r -- cycle
+enddef;
+
+vardef aux_stroke(expr main)(text aux) =
+ save l_, r_; pair l_, r_;
+ save apath_;
+ forsuffixes e=l,r: path apath_.e; apath_.e:=aux; endfor
+ l_ = main intersectiontimes apath_.l;
+ r_ = main intersectiontimes apath_.r;
+ if xpart l_ > xpart r_:
+  save swap_; pair swap_; swap_:=l_; l_:=r_; r_:=swap_;
+  path swap_; swap_:=apath_.l; apath_.l:=apath_.r; apath_.r:=swap_;
+ fi
+ trunc_path_end(main, xpart l_, point ypart l_ of apath_.l)
+    & subpath (ypart l_, infinity) of apath_.l
+    -- subpath (infinity, ypart r_) of apath_.r
+    & trunc_path_start(main, xpart r_, point ypart r_ of apath_.r)
+enddef;
+
+vardef aux_path(expr main, aux) =
+ save l_, r_,t_; pair l_, r_; t_=floor(length aux/2);
+ save apath_; path apath_;
+ l_ = main intersectiontimes (subpath (0,t_) of aux);
+ r_ = main intersectiontimes (subpath (0,length aux-t_) of reverse aux);
+ if xpart l_ > xpart r_:
+  save swap_; pair swap_; swap_:=l_; l_:=r_; r_:=swap_;
+  apath_=reverse aux;
+ else: apath_=aux; fi
+ trunc_path_end(main, xpart l_, point ypart l_ of apath_)
+    & subpath (ypart l_, length apath_-ypart r_) of apath_
+    & trunc_path_start(main, xpart r_, point length apath_-ypart r_ of apath_)
+enddef;
+
+def predir expr t of p = (precontrol t of p - point t of p) enddef;
+def postdir expr t of p = (postcontrol t of p - point t of p) enddef;
+
+path lpath[], rpath[]; boolean rev.l, rev.r;
+rev.l=true; rev.r=false;
+vardef make_paths@#(expr which) text t =
+ forsuffixes e=l: lpath@#:= if which=rev.l: reverse fi (t) endfor;
+ forsuffixes e=r: rpath@#:= if which=rev.r: reverse fi (t) endfor
+enddef;
+vardef split_path@#(expr p) =
+ lpath@#:=subpath (0,floor length p/2) of p;
+ rpath@#:=subpath (floor length p/2,infinity) of p;
+enddef;
+
+def pi_stroke = pickup fine.nib;
+ pos1(hair,0); pos2(vstem,-90); pos3(vstem,-90);
+ x1-.5hair=hround -.5hair; x2=2u; x3=w-1.5u if square_ends: + 0.5vstem - oo fi;
+ y1=x_height-x_height/3.141592653589793; y2=y3; top y3l=x_height;
+ if square_ends:
+  filldraw stroke z3e---z2e...{x1-x2,3.14159(y1-y2)}z1e;
+ else:
+  filldraw circ_stroke z3e---z2e...{x1-x2,3.14159(y1-y2)}z1e;
+ fi
+enddef;
+
+% This produces a path whose outline is the same as pi_stroke would draw. To
+% complete it, just add a --cycle to the end. It's left open so that you can
+% stick appendages onto it as needed.
+vardef pen_pi_stroke =
+ penpos1(hair,0); penpos2(vstem,-90); penpos3(vstem,-90);
+ x1-.5hair=hround -.5hair; x2=2u; x3=w-1.5u if square_ends: + 0.5vstem - oo fi;
+ y1=x_height-x_height/3.141592653589793; y2=y3; y3l=x_height;
+ pair dir_; dir_=(x1-x2,3.14159(y1-y2));
+ if square_ends:
+  z2l{left}...pen_end(dir_,z1l,fine,z1r,-dir_)...z2r{right}
+   --pen_end(right,z3r,fine,z3l,left)
+ else:
+  z2l{left}...pen_end(dir_,z1l,fine,z1r,-dir_)...z2r{right}
+   --z3r{right}...(z3+.5vstem*right){up}...{left}z3l
+ fi
+enddef;
+
+def bulb(suffix $,$$,$$$) =
+z$$$r=z$$r; % Not needed for square ends, but just in case...
+if square_ends:
+ same_pos($$$', $$$);
+ z$$$' = z$$$ + (0, if y$$$r<y$r: -1 * fi length(z$$$r-z$$$));
+ filldraw stroke z$e{x$$$r-x$r,0}...{0,y$$$r-y$r}z$$$'e;
+else:
+ path_.l:=z$l{x$$r-x$r,0}...{0,y$$r-y$r}z$$l;
+ filldraw path_.l--z$$r{0,y$r-y$$r}...{x$r-x$$r,0}z$r--cycle; % link
+ path_.r:=z$$$l{0,y$r-y$$r}..z$$$r{0,y$$r-y$r}; % near-circle
+ filldraw subpath(0,xpart(path_.r intersectiontimes path_.l)) of path_.r
+  --z$$r{0,y$$r-y$r}..cycle; % bulb
+fi
+ enddef;
+
+%
+% taildir is the direction the bulb tail travels toward the bulb.
+vardef bulb_path(suffix $,$$,$$$)(expr taildir) =
+ z$$$r=z$$r;
+ save perp,parl; pair perp,parl; perp=taildir rotated 90; parl=z$$$r-z$$$l;
+ if square_ends:
+  same_pos($$$',$$$);
+  z$$$'=z$$$+(0,if y$$$r<y$r: -1 * fi length(z$$$r-z$$$));
+  if parl rightof perp: reverse fi
+   (z$r{parl}...{-perp}pen_rlend$$$'(-perp,fine,perp){perp}
+    ...{-parl}z$l)
+ else:
+  z$$$'=z$$$;
+  z$$$'r=z$$$'+((z$$$r-z$$$) rotated if parl rightof perp: - fi 90);
+  z$$$'l=z$$$'+((z$$$l-z$$$) rotated if parl rightof perp: - fi 90);
+  if parl rightof perp: reverse fi
+   if (z$$$l{perp}...z$$$'l{parl}...z$$$r{-perp})
+     intersectiontimes (z$$l{perp}...{-parl}z$l) <> (-1,-1):
+    (z$r{parl}...z$$$r{-perp}...z$$$'r{-parl}...z$$$l{perp}
+     & combine(z$$$l{perp}...z$$$'l{parl}...z$$$r{-perp},
+         z$$l{perp}...{-parl}z$l))
+   else:
+    (z$r{parl}...z$$$r{-perp}...z$$$'r{-parl}...z$$$l{perp}...z$l)
+   fi
+ fi
+enddef;
+
+def v_bulb(suffix $,$$)= % |pos$| is known
+ y$$+.5curve=x_height+oo; x$$+.5curve=w-u;
+ numeric theta; theta=angle(4(x$-x$$),y$-y$$); pos$$(curve,theta+90);
+ filldraw z$$l{dir theta}..tension atleast 1 and 1..{down}z$l
+  --z$r{up}...{-dir theta}z$$r..cycle;  % bulb
+ enddef;
+
+vardef v_bulb_path(suffix $,$$)= % |pos$| is known
+ y$$+.5curve=x_height+oo; x$$+.5curve=w-.5u;
+ numeric theta; theta=angle(4(x$-x$$),y$-y$$); penpos$$(curve,theta+90);
+ z$r{up}...{-dir theta}z$$r..z$$l{dir theta}..tension atleast 1 and 1..{down}z$l
+ enddef;
+
+def dot(suffix $,$$) =
+ fill if square_dots: (x$l,y$$l)--(x$r,y$$l)
+   --(x$r,y$$r)--(x$l,y$$r)--cycle  % squarish dot
+  else:
+   invert_transforms_around(z$,z$l...z$$l...z$r...z$$r...cycle)
+  fi % roundish dot
+ enddef;
+
+def dot_path(suffix $,$$) =
+ fill z$l--z$$l--z$r--z$$r--cycle;
+enddef;
+
+def fulldot(suffix $,$$) =
+  fill z$l...z$$l...z$r...z$$r...cycle  % roundish dot
+enddef;
+
+def draw_solid_circle(expr width, height, center, stroke) =
+ numeric circ_width; circ_width=min(width,height);
+ penpos1(stroke,0); penpos2(stroke,90); penpos3(stroke,180);
+ penpos4(stroke,270);
+ x1r-x3r=y2r-y4r=circ_width; y1=y3; x2=x4; .5[z1,z3]=.5[z2,z4]=center;
+ fill invert_transforms_around(center,
+   z1r{up}...z2r{left}...z3r{down}...z4r{right}...cycle);
+enddef;
+
+def draw_a_circle(expr width, height, center, stroke) =
+ draw_solid_circle(width, height, center, stroke);
+ if x1l>x3l: unfill z4l{left}...z3l{up}...z2l{right}...z1l{down}...cycle; fi
+enddef;
+
+def comma(suffix $,@)(expr dot_size,jut,depth) =
+ pos$(dot_size,90);
+ if square_dots: pos$'(dot_size,0); z$'=z$; dot($',$);  % squarish dot
+  comma_join_:=max(fine.breadth,floor .7dot_size);
+  comma_bot_:=max(fine.breadth,floor .5dot_size);
+  pos@0(comma_join_,0); pos@1(comma_join_,0);
+  pos@2(comma_bot_,0); y@0=y$; y@1=y$l; y@2=y@1-depth;
+  x@0r=x@1r=x$'r; rt x@2r=good.x(x$-eps);
+  filldraw stroke z@0e--z@1e..z@2e;  % tail
+ else: pos@1(vair,90); pos@2(thick_vair,0); pos@3(vair,-36);
+  z@1r=z$r; x@2r=hround(x$+.5dot_size+jut)+2eps; x@3=x$-1.3u;
+  y@2=.5[y$,y$l]; y@3r=vround(y$-.5dot_size-depth);
+  pos@4(y$r-y$l,0); z@4=z$;
+  fill z@3r{curl .1}..tension 1.1..z@2r{up}..z@1r{left}..z@4l{down}
+   & combine(z@4l{down}..z$l{right}..{up}z@4r,
+    z@1l{right}...z@2l{down}..tension 1.1..{curl .1}z@3l)--cycle;
+ fi 
+ penlabels(@1,@2,@3); enddef;
+
+def ammoc(suffix $,@)(expr dot_size,jut,depth) = % reversed comma
+ pos$(dot_size,90);
+ if square_dots: pos$'(dot_size,0); z$'=z$; dot($',$);  % squarish dot
+  comma_join_:=max(fine.breadth,floor .7dot_size);
+  comma_top_:=max(fine.breadth,floor .5dot_size);
+  pos@0(comma_join_,0); pos@1(comma_join_,0);
+  pos@2(comma_top_,0); y@0=y$; y@1=y$r; y@2=y@1+depth;
+  x@0l=x@1l=x$'l; lft x@2l=good.x(x$+eps);
+  filldraw stroke z@0e--z@1e..z@2e;  % tail
+ else: pos@1(vair,90); pos@2(thick_vair,0); pos@3(vair,-36);
+  z@1l=z$l; x@2l=hround(x$-.5dot_size-jut)-2eps; x@3=x$+1.3u;
+  y@2=.5[y$,y$r]; y@3l=vround(y$+.5dot_size+depth);
+  pos@4(y$r-y$l,0); z@4=z$;
+  fill z@3l{curl .1}..tension 1.1..z@2l{down}..z@1l{right}..z@4r{up}
+   & combine(z@4r{up}..z$r{left}..{down}z@4l,
+    z@1r{left}...z@2r{up}..tension 1.1..{curl .1}z@3r)--cycle;
+ fi
+ penlabels(@1,@2,@3); enddef;
+
+vardef comma_jut=
+ save x, y;
+ z$=origin; pos@3(vair,-36); x@3=x$+1.3u;
+ x@3r-x$
+enddef;
+
+%%% @ from to %%%% temporary formatting change
+vardef diag_in(suffix from,$)(expr sharpness)(suffix $$) =
+ pickup tiny.nib; save from_x,y_;
+ if y.from>y$: bot else: top fi\\ y_=y$;
+ (from_x,y_)=whatever[z.from,z$];
+ sharpness[z$,(from_x,y_)]{z$-z.from}
+  ...{z$$-z$}z$+sharpness*length(z$-(from_x,y_))*unitvector(z$$-z$) enddef;
+
+vardef diag_out(suffix $)(expr sharpness)(suffix $$,to) =
+ pickup tiny.nib; save to_x,y_;
+ if y.to>y$: bot else: top fi\\ y_=y$;
+ (to_x,y_)=whatever[z$$,z.to];
+ z$$-sharpness*length(z$$-(to_x,y_))*unitvector(z$$-z$){z$$-z$}
+  ...{z.to-z$$}sharpness[z$$,(to_x,y_)] enddef;
+
+vardef diag_end(suffix from,$)(expr sharpness_in,sharpness_out)(suffix $$,to)=
+ save from_x,to_x,y_,x_,xx_;
+ if y.from>y$: tiny.bot else: tiny.top fi\\ y_=y$; % we assume that |y$=y$$|
+ (from_x,y_)=whatever[z.from,z$]; (to_x,y_)=whatever[z$$,z.to];
+ if x$$>x$: x_=x$+sharpness_in*length(z$-(from_x,y_));
+  xx_=x$$-sharpness_out*length(z$$-(to_x,y_));
+  if xx_<x_: xx_:=x_:=.5[xx_,x_]; fi
+ else: x_=x$-sharpness_in*length(z$-(from_x,y_));
+  xx_=x$$+sharpness_out*length(z$$-(to_x,y_));
+  if xx_>x_: xx_:=x_:=.5[xx_,x_]; fi fi
+ sharpness_in[z$,(from_x,y_)]{z$-z.from}
+  ...{z$$-z$}(x_,y$)..(xx_,y$){z$$-z$}
+  ...{z.to-z$$}sharpness_out[z$$,(to_x,y_)] enddef;
+%%% at from to %%%% restore normal formatting
+
+primarydef s rightof_ t = (xpart s*ypart t-ypart s*xpart t)>0 enddef;
+primarydef s rightof t =
+ if (s=origin) or (t=origin): hide(errmessage("Given a zero point")) false
+ else: unitvector s rightof_ unitvector t fi enddef;
+
+% This draws a square end rounded with the given pen diameter.
+% in_dir and out_dir are the starting and ending directions of the stroke.
+% $ and $$ are the corner points of the stroke.
+% diam is the theoretical pen diameter.
+%
+% This is based on diag_end, but it's totally redone so there is no expectance
+% that y$=y$$.
+vardef pen_end(expr in_dir,in_pt,diam,out_pt,out_dir)=
+ if diam>5/1000pt:
+ save stroke_in,stroke_edge,p,rotator;
+ pair stroke_edge, stroke_in, p[];
+ stroke_edge=unitvector(out_pt-in_pt);
+ stroke_in=stroke_edge rotated if in_dir rightof stroke_edge: 90 else: -90 fi;
+ rotator=if in_dir rightof stroke_edge: -90 else: 90 fi;
+ p5-p2=p6-p3=(.5diam,0) rotated (angle stroke_edge-rotator);
+ p5-p1=(.5diam,0) rotated (angle in_dir-rotator);
+ p6-p4=(.5diam,0) rotated (angle out_dir-rotator);
+ p1=in_pt+whatever*in_dir; p4=out_pt+whatever*out_dir;
+ p2=whatever[in_pt,out_pt]; p3=whatever[in_pt,out_pt];
+ p1{in_dir}...
+ if (p3-p2) dotprod stroke_edge > 0: % Corners are separated
+  p2{stroke_edge}..p3{stroke_edge} else: .5[p2,p3]{stroke_edge} fi
+ ...{out_dir}p4
+ else: in_pt--out_pt fi
+enddef;                                                       
+ % Here's what each of the point registers represent:
+ % p1: the incoming point of the first corner turned.
+ % p2: the outgoing point of the first corner.
+ % p3: the incoming point of the second corner.
+ % p4: the outgoing point of the second corner.
+ % p5: the corner of the first corner.
+ % p6: the corner of the second corner.
+ %
+ % So:
+ %    1_________________________
+ %   /|
+ %  / |
+ %  2-5
+ %  |
+ %  3-6
+ %  \ |
+ %   \|
+ %    4------------------------
+ %
+ 
+vardef vector_angle(expr u,v) =
+ save cos; cos=unitvector(u) dotprod unitvector(v); angle(cos,1+-+cos)
+enddef;
+
+% This draws a circular tip for an angle.
+vardef pen_angle(expr in_dir,the_pt,diam,out_dir) =
+ if diam>5/1000pt:
+  save corner,in_pt,out_pt,rotator; pair corner,in_pt,out_pt,rotator;
+  in_pt=the_pt+whatever*in_dir; out_pt=the_pt+whatever*out_dir;
+  rotator=if in_dir rightof out_dir: up else: down fi;
+  corner-in_pt=.5diam*rotator rotated angle in_dir;
+  corner-out_pt=.5diam*rotator rotated angle out_dir;
+  in_pt{in_dir}...{out_dir}out_pt
+ else: the_pt fi
+enddef;
+
+% This draws a mitered angle at a point. Width is the width of the miter join.
+vardef miter_angle(expr in_dir,the_pt,width,out_dir) =
+ if width>0:
+  save ipt,opt; pair ipt,opt;
+  ipt=the_pt+whatever*in_dir; opt=the_pt+whatever*out_dir;
+  opt-ipt=(miter_ratio*width,0)
+    rotated (angle(.5[unitvector-in_dir,unitvector out_dir])-90);
+  ipt--opt
+ else: the_pt fi
+enddef;
+
+% Draws a triangle.
+def triangle(suffix $,$$,$$$) =
+ save v; pair v[],v[]l,v[]r;
+ v$=.5rule_thickness*unitvector(z$$-z$) rotated 90;
+ v$$=.5rule_thickness*unitvector(z$$$-z$$) rotated 90;
+ v$$$=.5rule_thickness*unitvector(z$-z$$$) rotated 90;
+ z$-z.o$=z.i$-z$=v$+whatever*(z$$-z$)=v$$$+whatever*(z$-z$$$);
+ z$$-z.o$$=z.i$$-z$$=v$$+whatever*(z$$$-z$$)=v$+whatever*(z$$-z$);
+ z$$$-z.o$$$=z.i$$$-z$$$=v$$$+whatever*(z$-z$$$)=v$$+whatever*(z$$$-z$$);
+ fill miter_angle(z$-z$$$,z.o$,rule_thickness,z$$-z$)
+    --miter_angle(z$$-z$,z.o$$,rule_thickness,z$$$-z$$)
+    --miter_angle(z$$$-z$$,z.o$$$,rule_thickness,z$-z$$$)--cycle;
+ unfill z.i$$$--z.i$$--z.i$--cycle;
+enddef;
+
+% This draws a circular end. It always draws counterclockwise.
+vardef circ_end(suffix $)(expr circ_dir) =
+ save dir_; pair dir_; dir_=(z$r-z$l) rotated 90;
+ if (z$r-z$l) rightof circ_dir:
+  z$r{dir_}..{circ_dir rotated 90}(z$+circ_dir*length(z$r-z$))..{-dir_}z$l
+ else:
+  z$l{-dir_}..{circ_dir rotated 90}(z$+circ_dir*length(z$r-z$))..{dir_}z$r
+ fi
+enddef;
+
+% Short versions of pen_end, when we're traversing the end of a point.
+vardef pen_lrend@#(expr in_dir,diam,out_dir) =
+ pen_end(in_dir,z@#l,diam,z@#r,out_dir) enddef;
+vardef pen_rlend@#(expr in_dir,diam,out_dir) =
+ pen_end(in_dir,z@#r,diam,z@#l,out_dir) enddef;
+vardef pen_lrstem@#(expr diam)(suffix $) =
+ pen_rlend@#(z@#l-z$l,diam,z$r-z@#r) enddef;
+vardef pen_rlstem@#(expr diam)(suffix $) =
+ pen_rlend@#(z@#r-z$r,diam,z$l-z@#l) enddef;
+
+% Version of pen_end that uses points rather than directions.
+vardef pen_pointend(suffix from_pt,in_pt)(expr diam)(suffix out_pt,to_pt)=
+ pen_end(z.in_pt-z.from_pt,z.in_pt,diam,z.out_pt,z.to_pt-z.out_pt)
+enddef;
+
+% Version of pen_angle that uses points rather than directions.
+vardef pen_point(suffix from_pt,in_pt)(expr diam)(suffix to_pt) =
+ pen_angle(z.in_pt-z.from_pt,z.in_pt,diam,z.to_pt-z.in_pt)
+enddef;
+%
+% Terminates a stroke end with a given pen. FIXME: Should actually use the pen
+%
+vardef pen_lrpaths@#(expr diam)=
+ lpath@#--rpath@#
+enddef;
+vardef pen_rlpaths@#(expr diam)=
+ rpath@#--lpath@#
+enddef;
+
+%
+% These macros allow us to use stroke-like macros with pen-like ends.
+%
+% stroke_end.e gives us side e of a pen-like stroke, only to occur at the _end_
+% of the stroke.
+%
+% stroke_start.e is like stroke_end.e but should occur at the start of a stroke.
+%
+% half_pen_stroke should be used with a stroke containing only stroke_end.
+% full_pen_stroke should be used with a stroke containing stroke_start too.
+%
+vardef stroke_end.l(expr in_dir,diam)(suffix $) =
+ if diam>0:
+  save stroke_in, stroke_edge, p; pair stroke_edge, stroke_in, p[];
+  stroke_edge=unitvector(z$r-z$l);
+  stroke_in=stroke_edge rotated if in_dir rightof stroke_edge: 90 else: -90 fi;
+  p1=z$l+.5diam*stroke_in+whatever*stroke_edge=in_pt+whatever*in_dir;
+  p2=z$l+length(z$l-p1)*stroke_edge;
+  % We round short of halfway, because the corners crossing is disastrous
+  if 1.9*length(z$l-p2)>length(z$l-z$r): p2:=.5[z$r,z$l]; fi
+  p1{in_dir}...{stroke_edge}p2
+ else: z$l fi
+enddef;
+
+vardef stroke_start.l(expr in_dir)(suffix $) =
+reverse stroke_end.l(-in_dir,$) enddef;
+
+vardef stroke_end.r(expr in_dir,diam)(suffix $) =
+ if diam>0:
+  save stroke_in, stroke_edge, p; pair stroke_edge, stroke_in, p[];
+  stroke_edge=unitvector(z$l-z$r);
+  stroke_in=stroke_edge rotated if in_dir rightof stroke_edge: 90 else: -90 fi;
+  p1=z$r+.5diam*stroke_in+whatever*stroke_edge=in_pt+whatever*in_dir;
+  p2=z$r+length(z$r-p1)*stroke_edge;
+  % We round short of halfway, because the corners crossing is disastrous
+  if 1.9*length(z$r-p2)>length(z$l-z$r): p2:=.5[z$r,z$l]; fi
+  p1{in_dir}...p2{stroke_edge}
+ else: z$r fi
+enddef;
+
+vardef stroke_start.r(expr in_dir)(suffix $) =
+reverse stroke_end.r(-in_dir,$) enddef;
+
+vardef half_pen_stroke(expr diam) text t =
+ numeric cur_diam_; cur_diam_=diam;
+ forsuffixes e = l,r: path_.e:=t; endfor
+ if cycle path_.l:
+  errmessage "Beware: `stroke' isn't intended for cycles"; fi
+ path_.l if cur_diam_>0: .. else: -- fi reverse path_.r -- cycle enddef;
+
+vardef full_pen_stroke(expr diam) text t =
+ numeric cur_diam_; cur_diam_=diam;
+ forsuffixes e = l,r: path_.e:=t; endfor
+ if cycle path_.l:
+  errmessage "Beware: `stroke' isn't intended for cycles"; fi
+ path_.l if cur_diam_>0: .. else: -- fi reverse path_.r
+ if cur_diam_>0: .. else: -- fi cycle
+enddef;
+
+
+vardef special_diag_end(suffix $$,$,@,@@) = % for top middle of w's
+ if x@r<=x$r: diag_end($$r,$r,1,1,@l,@@l)
+ else: z0=whatever[z$$l,z$l]=whatever[z@l,z@@l];
+  diag_end($$r,$r,1,1,$l,0)--z0 fi enddef;
+
+def prime_points_inside(suffix $,$$) =
+ theta_:=angle(z$r-z$l);
+ penpos$'(whatever,theta_);
+ if y$$>y$: z$'=(0,pen_top) rotated theta_ + whatever[z$l,z$r];
+  theta_:=angle(z$$-z$)-90;
+ else: z$'=(0,pen_bot) rotated theta_ + whatever[z$l,z$r];
+  theta_:=angle(z$$-z$)+90; fi
+ z$'l+(pen_lft,0) rotated theta_=z$l+whatever*(z$-z$$);
+ z$'r+(pen_rt,0) rotated theta_=z$r+whatever*(z$-z$$);
+ enddef;
+
+def ellipse_set(suffix $,@,@@,$$) = % given |z$,x@,z$$|, find |y@| and |z@@|
+% such that the path |z${x@-x$,0}..z@{0,y@-y$}..{z$$-z@@}z@@|
+% is consistent with an ellipse
+% and such that the line |z@@--z$$| has a given |slope|
+ alpha_:=slope*(x@-x$); beta_:=y$$-y$-slope*(x$$-x$);
+ gamma_:=alpha_/beta_;
+ y@-y$=.5(beta_-alpha_*gamma_);
+ x@@-x$=-2gamma_*(x@-x$)/(1+gamma_*gamma_);
+ y@@-y$$=slope*(x@@-x$$) enddef;
+
+def vellipse_set(suffix $,@,@@,$$) =
+ alpha_:=(y@-y$)/slope; beta_:=x$$-x$-(y$$-y$)/slope;
+ gamma_:=alpha_/beta_;
+ x@-x$=.5(beta_-alpha_*gamma_);
+ y@@-y$=-2gamma_*(y@-y$)/(1+gamma_*gamma_);
+ x@@-x$$=(y@@-y$$)/slope enddef;
+
+vardef diag_ratio(expr a,b,y,c) = % assuming that $a>\vert b/y\vert$,
+% compute the value $\alpha=(x\6{++}y)/y$ such that $ax+b\alpha=c$
+ numeric aa_,bb_,cc_; bb_=b/y; cc_=c/y; aa_=a*a-bb_*bb_;
+ (a*(cc_++sqrt aa_)-bb_*cc_)/aa_ enddef;
+
+% Like diag_ratio, except more useful for me.
+% Given two points t, b and a stroke width wid, calculate the breadth of a
+% horizontal slice of that stroke.
+vardef diag_width(expr a, wid) =
+ abs(length(a) / ypart(a)) * wid
+enddef;
+
+def f_stroke(suffix $,$$,@,left_serif,right_serif)(expr left_jut,right_jut)=
+ pickup tiny.nib; bot y$=0;
+ penpos@0(x$r-x$l,0); x@0l=x$l; top y@0=x_height;
+ filldraw stroke z$e--z@0e;  % stem
+ pickup fine.nib; pos@0'(x$r-x$l-(hround stem_corr)+tiny,180);
+ y@0'=y@0; lft x@0'r=tiny.lft x$l;
+ penpos@1(x@0'l-x@0'r,180); x@1=x@0'; y@1+.5vair=.5[x_height,h];
+ pos@2(vair,90); top y@2r=h+oo;
+ if serifs: x@2=.6[x@1,x$$r]; (x@,y@2r)=whatever[z@2l,z@1l];
+  x@2r:=min(x@,.5[x@2,x$$r]); pos@3(hair,0); bulb(@2,@3,$$);  % bulb
+  filldraw stroke z@0'e--z@1e & super_arc.e(@1,@2);  % arc
+  dish_serif($,@0,left_serif,1/3,left_jut,right_serif,1/3,right_jut); % serif
+ else: x@2=.6[x@1,x$$]; y@1l:=1/3[y@1l,y@2l];
+  filldraw stroke z@0'e--z@1e & super_arc.e(@1,@2)
+   & term.e(@2,$$,right,.9,4); fi  % arc and terminal
+ penlabels(@0,@1,@2); enddef;
+
+vardef f_stroke_path(suffix $,$$,@)=
+ y$=0;
+ penpos@0(x$r-x$l,0); x@0l=x$l; y@0=x_height;
+ pos@0'(x$r-x$l-(hround stem_corr)+tiny,180);
+ y@0'=y@0; x@0'r=x$l;
+ penpos@1(x@0'l-x@0'r,180); x@1=x@0'; y@1+.5vair=.5[x_height,h];
+ pos@2(vair,90); y@2r=h+oo;
+ if serifs: x@2=.6[x@1,x$$r]; (x@,y@2r)=whatever[z@2l,z@1l];
+  x@2r:=min(x@,.5[x@2,x$$r]); pos@3(hair,0); % bulb
+  penlabels(@0,@1,@2);
+  super_arc.l(@1,@2) & bulb_path(@2,@3,$$,right) & super_arc.r(@2,@1)
+ else: x@2=.6[x@1,x$$]; y@1l:=1/3[y@1l,y@2l];
+  penlabels(@0,@1,@2);
+  super_arc.l(@1,@2) & term.l(@2,$$,right,.9,4)
+   --rterm.r(@2,$$,right,.9,4)& super_arc.r(@2,@1)
+ fi
+ enddef;
+
+vardef better_f_stroke_path(suffix $,$$,@)(expr frac,flat)=
+ y$=0;
+ penpos@0(x$r-x$l,0); x@0l=x$l; y@0=x_height;
+ penpos@1(x$r-x$l,180); x@1=x$; y@1=arc_join[x_height,h-.5vair];
+ y@2r=h;
+ pos@3(.6abs(x$r-x$l),0);
+ set_bulb_points(vair,frac,flat,@1,@2,@3,$$);
+ penlabels(@0,@1,@2);
+ {{interim superness:=more_super;
+ super_arc.l(@1,@2) & bulb_path(@2,@3,$$,right) & super_arc.r(@2,@1) }}
+enddef;
+
+% By this method, we calculate the x coordinate of the apex of the f curve.
+%
+%        |--w1--|-w2-|
+%   ---       -----   ---
+%    |      /   ^   \  h2
+%    |     /    |   ()---
+%    h1   /    z$$r  ^
+%    |   |           |
+%   ---  z$r       z$$$r/z$$$$r
+%
+% y$$r should be set, all of x$$$$r should be set, and all of z$ should be set.
+% The length x$$$r-x$$$l should be set.
+%
+% None of y$ should be set, none of x$$ should be set, and y$$ and y$$l should
+% be unset.
+%
+def set_bulb_points(expr vwidth,apex_frac,flatness)(suffix $,$$,$$$,$$$$)=
+ z$$=.5[z$$r,z$$l];
+  y$$r-y$$l=if y$r>y$$r:-1 fi\\ vwidth;
+ x$$r=apex_frac[x$l,x$$$$];
+ if (x$r>x$$$$r) <> (y$r>y$$r):
+  z$$$$r-z$$r=whatever[origin,(1,flatness)];
+  % This really should be z$$$l-z$$l, but z$$$l is not always known
+  z$$$$r+(z$$$l-z$$$r)-z$$l=whatever[origin,(1,flatness)];
+ else:
+  z$$$$r-z$$r=whatever[origin,(-1,flatness)];
+  z$$$$r+(z$$$l-z$$$r)-z$$l=whatever[origin,(-1,flatness)];
+ fi
+enddef;
+
+def h_stroke(suffix $,@,@@,$$) =
+ penpos$$(x@@r-x@@l,0); x$$=x@@; bot y$$=0;
+ y@@=1/3[bar_height,x_height];
+ penpos$''(x$r-x$l,0); x$''=x$; y$''=1/8[bar_height,x_height];
+ filldraw stroke z$''e--z$e;  % thicken the lower left stem
+ penpos@0(min(rt x$r-lft x$l,thin_join)-fine,180); pickup fine.nib;
+ rt x@0l=tiny.rt x$r; y@0=y$'';
+ pos@1(vair,90); pos@@'(x@@r-x@@l+tiny,0); z@@'=z@@;
+ x@1=.5[rt x@0l,rt x@@'r]; top y@1r=x_height+oo;
+ (x@,y@1l)=whatever[z@1r,z@0l]; x@1l:=x@;
+ filldraw stroke z@0e{up}...{right}z@1e
+  &{{interim superness:=hein_super; super_arc.e(@1,@@')}};  % arch
+ pickup tiny.nib; filldraw stroke z@@e--z$$e;  % right stem
+ labels(@0); penlabels(@1); enddef;
+
+%
+% h-stroke starting from left vertical stem at z$, through right vertical stem
+% at z@@, terminating at z$$.
+%
+vardef h_stroke_path@#(suffix $,@,@@,$$)suffix var =
+ same_pos($$,@@); x$$l=x@@l;
+ if not known y$$: y$$=-o; fi
+ nibthinstems(@3); z@3r=z@@r;
+ nibhairpos@1; x@1=x$;
+ if h_stroke_variant.var:
+  x@2l=.7[x@1l,x@3l];
+ else:
+  y@1l=y@@l;
+ fi
+ y@2r=x_height+o;
+ angle_points(@1,@2,@3,nib_dir,nib_draw_dir);
+ correct_l(@@,@2);
+ labels(@2r,@2l); penlabels(@1);
+ make_paths@#(rev.r) z@1e--z@2e--z@@e;
+enddef;
+
+boolean h_stroke_variant, h_stroke_variant.v;
+h_stroke_variant = false;
+h_stroke_variant.v = true;
+
+vardef u_stroke_path@#(suffix $,@,@@,$$) =
+ same_pos($$,@@); x$$=x@@;
+ nibthinstems(@3); z@3l=z@@l;
+ nibhairpos@1; x@1=x$;
+ y@1r=y@@r;
+ y@2l=-o;
+ angle_points(@3,@2,@1,nib_draw_dir,nib_dir);
+ x@4=x@@r; z@4=whatever[z@2r,z@3r];
+ y@@r:=y@4;
+ penlabels(@1,@2);
+ make_paths@#(rev.l) z@1e--z@2e--z@@e;
+enddef;
+
+def hook_out(suffix $,$$,$$$)suffix modifier= % |x$| and |x$$$| (only) are known
+ pos$(stem,0); pos$$(vair,90);
+ x$$$:=hround(x$$$+.5hair-eps)-.5hair; pos$$$(hair,180);
+ y$=1/4x_height; bot y$$l=-oo; y$$$=1/3x_height;
+ if skewed.modifier: x$$=x$+1.25u;
+  filldraw stroke z$e{-u,-x_height}...z$$e{right}...{up}z$$$e;  % hook
+ else: x$$=x$+1.5u;
+  filldraw stroke z$e{down}...z$$e{right}
+   ...{x$$$-(x$+2.5u),x_height}z$$$e; fi enddef;  % hook
+
+def hook_out_points(suffix $,$$,$$$)suffix modifier =
+ if not known (z$r-z$l): penpos$(stem,0); fi
+ penpos$$(vair,90);
+ if not known (z$$$r-z$$$l): penpos$$$(hair,166); fi
+ y$=1/2x_height-eps; y$$l=-oo;
+ if not known z$$$: y$$$=.39x_height; fi
+ if skewed.modifier: x$$=x$+1.25u; else: x$$=x$+1.5u; fi
+enddef;
+
+vardef hook_out_path(expr diam)(suffix $,$$,$$$)suffix modifier =
+ save dir_; pair dir_; dir_=(x$$$-(x$+2.5u),x_height);
+ if skewed.modifier:
+  z$l{-u,-x_height}...z$$l{right}
+    ...{curl 0}pen_end(dir_,z$$$l,diam,z$$$r,-dir_){curl 0}
+    ...z$$r{left}...{u,x_height}z$r
+ else:
+  z$l{down}...z$$l{right}...{dir_}pen_end(dir_,z$$$l,diam,z$$$r,-dir_){-dir_}
+    ...z$$r{left}...{up}z$r
+ fi
+enddef;
+
+def hook_in(suffix $,$$,$$$)suffix modifier= % |x$| and |x$$$| (only) are known
+ x$:=hround(x$-.5hair)+.5hair; pos$(hair,180);
+ pos$$(vair,90); pos$$$(stem,0);
+ y$=2/3x_height; top y$$r=x_height+oo; y$$$=3/4x_height;
+ if skewed.modifier: x$$=x$$$-1.25u;
+  filldraw stroke z$e{up}...z$$e{right}...{-u,-x_height}z$$$e;  % hook
+ else: x$$=x$$$-1.5u;
+  filldraw stroke z$e{x$$$-2.5u-x$,x_height}
+   ...z$$e{right}...{down}z$$$e; fi enddef;  % hook
+
+def hook_in_points(suffix $,$$,$$$)suffix modifier=
+ if not known (z$r-z$l): penpos$(hair,155); fi
+ penpos$$(vair,90);
+ if not known (z$$$r-z$$$l): penpos$$$(stem,0); fi
+ if not known y$: y$=.68x_height; fi
+ y$$r=x_height+oo;
+ if not known y$$$: y$$$=1/2x_height+eps; fi
+ save pt_,frac_; numeric pt_,frac_;
+ x$$r-x$r=frac_*(y$$r-y$r); pt_-x$l=frac_*(y$$l-y$l); x$$l:=pt_;
+ if skewed.modifier: x$$=x$$$-1.25u; else: x$$=x$$$-1.5u; fi
+enddef;
+
+vardef hook_in_path(expr diam)(suffix $,$$,$$$)suffix modifier=
+ if skewed.modifier:
+  save dir_; pair dir_; dir_=(x$$$-.5u-x$,x_height);
+  z$$$r{u,x_height}...z$$r{left}
+    ...{-dir_}pen_end(-dir_, z$r, diam, z$l, dir_){dir_}
+    ...z$$l{right}...z$$$l{-u,-x_height}
+ else:
+  save dir_; pair dir_; dir_=(x$$$-2.5u-x$,x_height);
+  z$$$r{up}...z$$r{left}...pen_end(-dir_, z$r, diam, z$l, dir_)
+    ...z$$l{right}...z$$$l{down} fi
+enddef;
+
+def correct_r(suffix $,$$) =
+ y$r:={{
+  save p; pair p;
+  xpart p=x$r; p=z$$r+whatever*(z$l-z$$l);
+  ypart p
+ }};
+enddef;
+
+def correct_l(suffix $,$$) =
+ y$l:={{
+  save p; pair p;
+  xpart p=x$l; p=z$$l+whatever*(z$r-z$$r);
+  ypart p
+ }};
+enddef;
+
+vardef crescent_path@#(suffix $,$$,$$$,$$$$) =
+ if unknown y$l or unknown x$$l or unknown y$$$l or unknown x$$$$l:
+  errmessage "Insufficient points defined for crescent";
+ fi
+ if known x$l or known y$$l or known x$$$l or known y$$$$l:
+  errmessage "Crescent points overdefined";
+ fi
+ save r_;
+ r_1*(1+xpart nib_dir)=y$l-y$$$l;
+ r_2*(1+ypart nib_dir)=x$$$$l-x$$l;
+ y$$l=y$$$l+r_1; x$$$l=x$$l+r_2;
+ x$l=x$$$l-r_2*ypart nib_dir;
+ y$$$$l=y$$l-r_1*xpart nib_dir;
+ make_paths@#(rev.r) z$e{-nib_dir}...{down}z$$e
+   ...{right}z$$$e...{nib_dir}z$$$$e;
+enddef;
+
+def ital_arch(suffix $,$$,$$$) = % |z$| and |z$$$| (only) are known
+ pos$'(hair,180); z$'l=z$r;
+ pos$$(vair,90); pos$$$(stem,0);
+ penlabels($');
+ {{interim superness := more_super; x$$=.76[x$,x$$$];
+ top y$$r=x_height+oo; y$$$=.65x_height;
+ filldraw stroke z$'e{up}...super_arc.e($$,$$$);}} enddef;  % stroke
+
+vardef ital_arch_paths@#(suffix $,$$,$$$)suffix modifier =
+ % |z$| and |z$$$| (only) are known
+ % Extra offset keeps the path from intersecting too low.
+ numeric d_; d_=(x$$$-x$)/abs(x$$$-x$);
+ penpos$'(hair,angle(-d_,0)); z$'l=if d_>0: z$r else: z$l fi;
+ penpos$$(vair,d_*90);
+ if not known (z$$$r-z$$$l): penpos$$$(stem,angle(d_,0)); fi
+ if not known z$$$: y$$$=.65x_height; fi
+ y$$r=if d_>0: x_height+oo else: -oo fi;
+ if skewed.modifier:
+  x$$=.76[x$,x$$$];
+  x$$l:=.85[x$l,x$$$l];
+ else:
+  x$$=.66[x$,x$$$];
+  x$$l:=.75[x$l,x$$$l];
+ fi
+ interim superness:=more_super;
+ %make_paths@#(rev.r) z$'e{up}...super_arc.e($$,$$$);  % stroke
+ penlabels($');
+ make_paths@#(rev.r) z$'e{(.5u,x_height)*d_}...z$$e{d_,0}
+  ..tension 1..{d_*if skewed.modifier: -u else: 0 fi,d_*-x_height}z$$$e;
+enddef;
+ 
+
+def compute_spread(expr normal_spread,big_spread)=
+ spread#:=math_spread[normal_spread,big_spread];
+ spread:=2ceiling(spread#*hppp/2)+eps; enddef;
+
+def v_center(expr h_sharp) =
+ .5h_sharp+math_axis#, .5h_sharp-math_axis# enddef;
+
+def circle_points =
+ x4=x8=.5[x2,x6]; x1=x3=superness[x4,x2]; x5=x7=superness[x4,x6];
+ y2=y6=.5[y4,y8]; y1=y7=superness[y2,y8]; y3=y5=superness[y2,y4];
+ enddef;
+def draw_circle =
+ draw z8{right}...z1{z2-z8}...z2{down}...z3{z4-z2}...z4{left}
+  ...z5{z6-z4}...z6{up}...z7{z8-z6}...cycle enddef;
+
+def left_paren(expr min_breadth, max_breadth) =
+ penpos1(hround min_breadth,0);
+ penpos2(hround max_breadth,0); penpos3(hround min_breadth,0);
+ x1r=x3r=hround(w-1.25u+.5min_breadth); x2l=hround 1.25u;
+ y1=h; y2=.5[y1,y3]; y3=-d;
+ pair v[]l,v[]r;
+ forsuffixes $=1,3: forsuffixes e=l,r: v$e=(z2e-z$e) xscaled 3; endfor endfor
+ fill z2r{up}...{-v1r}pen_rlend1(-v1r,fine,v1l){v1l}
+    ...z2l{down}...{-v3l}pen_lrend3(-v3l,fine,v3r){v3r}...cycle;
+ penlabels(1,2,3); enddef;
+
+def right_paren(expr min_breadth, max_breadth) =
+ penpos1(hround min_breadth,0);
+ penpos2(hround max_breadth,0); penpos3(hround min_breadth,0);
+ x1l=x3l=hround(1.25u-.5min_breadth); x2r=hround(w-1.25u);
+ y1=h; y2=.5[y1,y3]; y3=-d;
+ pair v[]l,v[]r;
+ forsuffixes $=1,3: forsuffixes e=l,r: v$e=(z2e-z$e) xscaled 3; endfor endfor
+ fill z2r{up}...{-v1r}pen_rlend1(-v1r,fine,v1l){v1l}
+    ...z2l{down}...{-v3l}pen_lrend3(-v3l,fine,v3r){v3r}...cycle;
+ penlabels(1,2,3); enddef;
+
+def left_bracket(expr breadth,do_top,do_bot) =
+ numeric thickness; thickness=hround breadth;
+ penpos1(thickness,180); penpos2(thickness,180);
+ y1=h; y2=-d; x1r=x2r=hround(2.5u-.5thickness);
+ penpos4(thickness,90); penpos6(thickness,-90);
+ x4=x6=hround(w-.75u+.5thickness); y4r=y1; y6r=y2;
+ angled_pos(4,left,3,down,5); angled_pos(6,left,5,up,1);
+ fill
+ if do_top: z3l--pen_lrend4(right,crisp,left)--pen_angle(left,z1r,crisp,down)--
+ else: pen_lrend1(up,crisp,down)-- fi
+ if do_bot: pen_angle(down,z5r,crisp,right)--pen_rlend6(right,crisp,left)--z5l--
+ else: pen_rlend2(down,crisp,up)-- fi cycle;
+ penlabels(1,2,3,4,5,6); enddef;
+
+def right_bracket(expr breadth,do_top,do_bot) =
+ numeric thickness; thickness=hround breadth;
+ penpos1(thickness,0); penpos2(thickness,0);
+ y1=h; y2=-d; x1r=x2r=hround(w-2.5u+.5thickness);
+ penpos4(thickness,90);
+ penpos6(thickness,-90);
+ x4=x6=hround(.75u-.5thickness); y4r=y1; y6r=y2;
+ angled_pos(4,right,3,down,2); angled_pos(6,right,5,up,1);
+ fill
+ if do_top: pen_angle(up,z1r,crisp,left)--pen_rlend4(left,crisp,right)--z3l--
+ else: pen_rlend1(up,crisp,down)-- fi
+ if do_bot: z5l--pen_lrend6(left,crisp,right)--pen_angle(right,z2r,crisp,up)--
+ else: pen_lrend2(down,crisp,up)-- fi cycle;
+ penlabels(1,2,3,4,5,6); enddef;
+
+def left_curly(expr min_breadth, max_breadth) =
+ forsuffixes $=1,1',4,4',7,7': penpos$(hround min_breadth,0); endfor
+ forsuffixes $=2,3,5,6: penpos$(hround max_breadth,0); endfor
+ x2=x3=x5=x6; x1=x1'=x7=x7'=w-x4=w-x4';
+ x4l=hround(1.5u-.5min_breadth); x2l=hround(.5w-.5max_breadth);
+ y1=h; y7=1-d; .5[y4,y4']=.5[y1,y7]=.5[y2,y6]=.5[y3,y5];
+ y1-y2=y3-y4=(y1-y4)/4;
+ y1-y1'=y4-y4'=y7'-y7=vround(min_breadth);
+ left_curly_path;
+ penlabels(1,2,3,4,5,6,7); enddef;
+
+def left_curly_path =
+ pair v[]l,v[]r,v[]'l,v[]'r;
+ v1l=(3(x2l-x1l),y2-y1); v4l=(3(x4l-x3l),y4-y3);
+ v4'l=(3(x5l-x4l),y5-y4'); v7l=(3(x7l-x6l),y7-y6);
+ v7'r=(3(x6r-x7r),y6-y7'); v4r=(3(x4r-x5r),.5[y4,y4']-y5);
+ v4'r=(3(x3r-x4r),y3-.5[y4,y4']); v1'r=(3(x1r-x2r),y1'-y2);
+ fill pen_angle(left,z1l,fine,v1l){v1l}...{down}z2l--z3l{down}
+  ...{v4l}pen_end(v4l,z4l,fine,z4'l,v4'l){v4'l}
+  ...{down}z5l--z6l{down}...{v7l}pen_angle(v7l,z7l,fine,right)
+  --pen_end(right,z7r,fine,z7'r,v7'r){v7'r}...{up}z6r--z5r{up}
+  ...{v4r}.5[z4r,z4'r]{v4'r}...{up}z3r--z2r{up}
+  ...{v1'r}pen_end(v1'r,z1'r,fine,z1r,left)--cycle  % stroke
+enddef;
+
+def right_curly(expr min_breadth, max_breadth) =
+ forsuffixes $=1,1',4,4',7,7': penpos$(hround min_breadth,0); endfor
+ forsuffixes $=2,3,5,6: penpos$(hround max_breadth,0); endfor
+ x2=x3=x5=x6; x1=x1'=x7=x7'=w-x4=w-x4';
+ x1l=hround(1.5u-.5min_breadth); x2l=hround(.5w-.5max_breadth);
+ y1=h; y7=-d; .5[y4,y4']=.5[y1,y7]=.5[y2,y6]=.5[y3,y5];
+ y1-y2=y3-y4=(y1-y4)/4;
+ y1-y1'=y4-y4'=y7'-y7=vround(min_breadth);
+ right_curly_path;
+ penlabels(1,2,3,4,5,6,7); enddef;
+
+def right_curly_path =
+ pair v[]l,v[]r,v[]'l,v[]'r;
+ v1r=(3(x2r-x1r),y2-y1); v4r=(3(x4r-x3r),y4-y3);
+ v4'r=(3(x5r-x4r),y5-y4'); v7r=(3(x7r-x6r),y7-y6);
+ v7'l=(3(x6l-x7l),y6-y7'); v4l=(3(x4l-x5l),.5[y4,y4']-y5);
+ v4'l=(3(x3l-x4l),y3-.5[y4,y4']);
+ v1'l=(3(x1l-x2l),y1'-y2);
+ fill pen_end(left,z1l,fine,z1'l,-v1'l){-v1'l}...{down}z2l--z3l{down}
+  ...{-v4'l}.5[z4l,z4'l]{-v4l}...{down}z5l--z6l{down}
+  ...{-v7'l}pen_end(-v7'l,z7'l,fine,z7l,right)
+  --pen_angle(right,z7r,fine,-v7r){-v7r}...{up}z6r--z5r{up}
+  ...{-v4'r}z4'r--z4r{-v4r}...{up}z3r--z2r{up}
+  ...{-v1r}pen_angle(-v1r,z1r,fine,left)--cycle enddef;
+
+def left_angle(expr breadth) =
+ x1r=x3r=w-hround u+eps; x2l=hround u-eps;
+ y1=h; y3=-d; .5[y1,y3]=y2;
+ numeric alpha; alpha=diag_ratio(1,breadth,y1-y2,x1r-x2l);
+ penpos1(alpha*breadth,0); penpos2(alpha*breadth,0);
+ penpos3(alpha*breadth,0);
+ fill rlend(1)--lrthrough(2,lrend(3))--cycle;
+ labels(1,2,3); enddef;
+
+def right_angle(expr breadth) =
+ x1l=x3l=hround u+eps; x2r=hround(w-u)+eps;
+ y1=h; y3=-d; .5[y1,y3]=y2;
+ numeric alpha; alpha=diag_ratio(1,breadth,y1-y2,x2r-x1l);
+ penpos1(alpha*breadth,0); penpos2(alpha*breadth,0);
+ penpos3(alpha*breadth,0);
+ fill rlend(1)--lrthrough(2,lrend(3))--cycle;
+ labels(1,2,3); enddef;
+
+def big_slash(expr breadth) =
+ adjust_fit(-letter_fit#,-letter_fit#);
+ x1r=hround(w-u); x2l=hround u; y1=h; y2=-d;
+ numeric alpha; alpha=diag_ratio(1,breadth,y1-y2,x1r-x2l);
+ penpos1(alpha*breadth,0); penpos2(alpha*breadth,0);
+ fill rlend(1)--lrend(2)--cycle;
+ labels(1,2); enddef;
+
+def big_blash(expr breadth) =
+ adjust_fit(-letter_fit#,-letter_fit#); pickup pencircle scaled breadth;
+ x1l=hround u; x2r=hround(w-u); y1=h; y2=-d;
+ numeric alpha; alpha=diag_ratio(1,breadth,y1-y2,x2r-x1l);
+ penpos1(alpha*breadth,0); penpos2(alpha*breadth,0);
+ fill rlend(1)--lrend(2)--cycle;
+ labels(1,2); enddef;
+
+def big_sqrt =
+ adjust_fit(0,-letter_fit#);
+ x1=4/9w; x2=w; y1=-d; y2=h;
+ penpos1(diag_width(z2-z1,rule_thickness),0);
+ penpos2(diag_width(z2-z1,rule_thickness),0);
+ x3l=1.5[x2,x1]; y3=.5[y1,y2];
+ numeric alpha; alpha=diag_ratio(1,.5max(stem,rule_thickness),y3-y1,x1-x3l);
+ penpos3(alpha*max(stem,rule_thickness),0);
+ penpos5(vair,-45); x5l=hround(x3l-u); z5l=whatever[z3r,z2];
+ z6=z5r+whatever*(z2-z3r)=whatever[z3l,z1l];
+ z7=whatever[z1l,z2l]=z3r+whatever*(z1l-z3l);
+ y0=0; z0=whatever[z1r,z2r];
+ fill z2r--z2l--z7
+  --pen_angle(z3r-z7,z3r,min(crisp,length(z3r-z5l)),z5l-z3r)
+  --pen_lrend5(z5l-z3r,min(crisp,length(z6-z5r)),z6-z5r)--z6
+  --pen_lrend1(z1l-z6,crisp,z2r-z1r)--z0--(x2r,y0)--cycle;
+ penlabels(1,2,3,4,5,6,7); enddef;
+
+def big_hat =
+ adjust_fit(0,0);
+ penpos2(.6[vair,curve],90); y2r=h+o; x2=.5w;
+ x1=w-x3=0; y1=y3=.5[x_height,y2];
+ penpos1(hair,angle(z2-z1)+90); penpos3(hair,angle(z3-z2)+90);
+ fill pen_lrend3(z3l-z2l,crisp,z2r-z3r)
+    --pen_angle(z2r-z3r,z2r,crisp,z1r-z2r)
+    --pen_rlend1(z1r-z2r,crisp,z2l-z1l)--z2l--cycle;
+ penlabels(1,2,3); enddef;
+
+% The tilde's not going to conform to the Adobe Type 1 specs, but the math
+% behind the Bezier curves is so cool that I'm leaving it alone anyway. No
+% pen-curved ends, but I think it's okay.
+def big_tilde =
+ adjust_fit(0,0);
+ numeric theta; theta=angle(1/6(w-vair),1/4(h-x_height));
+ numeric mid_width; mid_width=.4[vair,stem];
+ penpos1(vair,theta+90); penpos2(vair,theta+90);
+ penpos3(vair,theta+90); penpos4(vair,theta+90);
+ z2-z1=z4-z3=(mid_width)*dir theta;
+ x1r=w-x4l=0; y4r=h;
+ y1l=vround(y1l+min(2/3[x_height,h],y3l-.25vair)-y1r);
+ pair delta; ypart delta=3(y3l-y1l); delta=whatever*dir theta;
+ fill z1l..controls(z1l+delta)and(z3l-delta)..z3l--z4l
+  --z4r..controls(z4r-delta)and(z2r+delta)..z2r--z1r--cycle;  % stroke
+ penlabels(1,2,3,4); enddef;
+
+def beginarithchar(expr c) = % ensure consistent dimensions for $+$, $-$, etc.
+ if monospace: beginchar(c,14u#,27/7u#+math_axis#,27/7u#-math_axis#);
+ else: beginchar(c,14u#,6u#+math_axis#,6u#-math_axis#); fi
+ italcorr math_axis#*slant-.5u#;
+ adjust_fit(0,0); enddef;
+
+newinternal l,r,shrink_fit; % adjustments to spacing
+
+def do_expansion(expr expansion_factor) =
+ forsuffixes $=u,jut,cap_jut,beak_jut,beak_jut_big,apex_corr,lc_apex_corr:
+   $:=$.#*expansion_factor*hppp; endfor
+enddef;
+
+def normal_adjust_fit(expr left_adjustment,right_adjustment) =
+ if known get_metric.glyph_width:
+  numeric charwd_in; charwd_in=charwd;
+  l:=-hround(get_metric.left_sidebearing*hppp)-letter_fit;
+  interim xoffset:=-l;
+  charwd:=charwd+2letter_fit#+get_metric.left_sidebearing+
+    get_metric.right_sidebearing;
+  r:=l+hround(charwd*hppp)-shrink_fit;
+  w:=r-hround(get_metric.right_sidebearing*hppp)-letter_fit;
+  do_expansion(w/(charwd_in*hppp));
+ else:
+  numeric charwd_in; charwd_in=charwd;
+  l:=-hround(left_adjustment*hppp)-letter_fit;
+  interim xoffset:=-l;
+  charwd:=charwd+2letter_fit#+left_adjustment+right_adjustment;
+  r:=l+hround(charwd*hppp)-shrink_fit;
+  w:=r-hround(right_adjustment*hppp)-letter_fit;
+  do_expansion(w/(charwd_in*hppp));
+ fi
+ if known bp_per_pixel:
+    special "% MF2PT1: glyph_dimensions 0 " & to_bp (-d) & " " & to_bp(r-l) & " " & to_bp(h);
+    special "% MF2PT1: charwd " & decimal charwd;   % Must come after the |font_size| |special|
+ fi
+enddef;
+
+def mono_adjust_fit(expr left_adjustment,right_adjustment) =
+ numeric charwd_in; charwd_in=charwd;
+ numeric expansion_factor;
+ mono_charwd#=2letter_fit#
+   +expansion_factor*(charwd+left_adjustment+right_adjustment);
+ l:=-hround(left_adjustment*expansion_factor*hppp)-letter_fit;
+ interim xoffset:=-l;
+ r:=l+mono_charwd-shrink_fit;
+ w:=r-hround(right_adjustment*expansion_factor*hppp)-letter_fit;
+ charwd:=mono_charwd#; charic:=mono_charic#;
+ do_expansion(w/(charwd_in*hppp));
+ enddef;
+
+extra_endchar:=extra_endchar&"r:=r+shrink_fit;w:=r-l;";
+
+def ignore_math_fit(expr left_adjustment,right_adjustment) = enddef;
+def do_math_fit(expr left_adjustment,right_adjustment) =
+ l:=l-hround(left_adjustment*hppp); interim xoffset:=-l;
+ charwd:=charwd+left_adjustment+right_adjustment;
+ r:=l+hround(charwd*hppp)-shrink_fit;
+ charic:=charic-right_adjustment;
+ if charic<0: charic:=0; fi enddef;
+def zero_width = charwd:=0; r:=l-shrink_fit enddef;
+def change_width = if not monospace: % change width by $\pm1$
+ if r+shrink_fit-l=floor(charwd*hppp): w:=w+1; r:=r+1;
+ else: w:=w-1; r:=r-1; fi fi enddef;
+def center_on(expr x) = if not monospace: % change width for symmetric fit
+ r:=r+2x-w; w:=2x; fi enddef;
+def padded expr del_sharp =
+ charht:=charht+del_sharp; chardp:=chardp+del_sharp enddef;
+
+%
+% These functions deal with the centering of accents over math characters. They
+% are given a _pixel-oriented_ value for the center point of the character; this
+% is converted to a real dimen. The reason for doing this silly backward
+% conversion is that, because of monospace characters, we don't really know what
+% u# is, and we also don't know how far astray the left character edge has gone.
+%
+def ignore_math_kern(expr center) = enddef;
+def do_math_kern(expr center) =
+ ligtable charcode:
+  skewchar kern (center-l)/hppp + charht*slant - (charwd+charic)/2
+enddef;
+
+def font_setup =
+ if monospace: let adjust_fit=mono_adjust_fit;
+  def mfudged=fudged enddef;
+  mono_charic#:=body_height#*slant;
+  if mono_charic#<0: mono_charic#:=0; fi
+  mono_charwd#:=9u#; define_whole_pixels(mono_charwd);
+ else: let adjust_fit=normal_adjust_fit;
+  def mfudged= enddef; fi
+ if math_fitting: let math_fit=do_math_fit; let math_kern=do_math_kern
+ else: let math_fit=ignore_math_fit; let math_kern=ignore_math_kern fi;
+ define_pixels(u,width_adj,serif_fit,cap_serif_fit,jut,cap_jut,beak,
+  bar_height,dish,bracket,beak_jut,beak_jut_big,stem_corr,vair_corr,apex_corr,
+  lc_apex_corr,w_mid_corr,
+  nib_stem,nib_hair,
+  A_jut, A_jut_in, A_outer_bracket, F_jut, H_jut, t_jut);
+ define_blacker_pixels(notch_cut,cap_notch_cut);
+ forsuffixes $=notch_cut,cap_notch_cut: if $<3: $:=3; fi endfor
+ define_whole_pixels(letter_fit,fine,crisp,tiny);
+ define_whole_vertical_pixels(body_height,asc_height,
+  cap_height,fig_height,x_height,comma_depth,desc_depth,serif_drop);
+ define_whole_blacker_pixels(thin_join,hair,thick_hair,stem,curve,flare,
+  small_flare,i_dot_size,
+  dot_size,cap_hair,cap_stem,cap_curve,arm_slab);
+ define_whole_vertical_blacker_pixels(vair,bar,slab,cap_bar,cap_band,
+  thin_cap_band,thick_cap_band,thick_vair);
+ define_corrected_pixels(o,dot_o,apex_o,lc_apex_o);
+ forsuffixes $=hair,stem,cap_stem:
+  fudged$.#:=fudge*$.#; fudged$:=hround(fudged$.#*hppp+blacker);
+  forever: exitif fudged$>.9fudge*$; fudged$:=fudged$+1; endfor endfor
+ rule_thickness:=ceiling(rule_thickness#*hppp);
+ heavy_rule_thickness:=ceiling(3rule_thickness#*hppp);
+ light_rule_thickness:=ceiling(0.625rule_thickness#*hppp);
+ oo:=vround(.5o#*hppp*o_correction)+eps;
+ apex_oo:=vround(.5apex_o#*hppp*o_correction)+eps;
+ lc_apex_oo:=vround(.5lc_apex_o#*hppp*o_correction)+eps;
+ lowres_fix(stem,curve,flare) 1.3;
+ lowres_fix(stem,curve) 1.2;
+ lowres_fix(cap_stem,cap_curve) 1.2;
+ lowres_fix(hair,cap_hair) 1.2;
+ lowres_fix(cap_band,thin_cap_band,thick_cap_band,cap_bar,bar,slab) 1.2;
+ stem':=hround(stem-stem_corr); cap_stem':=hround(cap_stem-stem_corr);
+ vair':=vround(vair+vair_corr);
+ vstem:=vround .8[vair,stem]; cap_vstem:=vround .8[vair,cap_stem];
+ multi_jut:=hround(multi_jut_ratio * jut);
+ mm_jut:=hround(multi_jut_ratio * multi_jut_ratio * jut);
+ unmulti_jut:=hround(2jut - multi_jut);
+ ess:=(ess#/stem#)*stem; cap_ess:=(cap_ess#/cap_stem#)*cap_stem;
+ dw:=(curve#-stem#)*hppp; bold:=curve#*hppp+blacker;
+ dh#:=.6designsize;
+ define_pixels(dh);
+ stem_shift#:=if serifs: 2stem_corr# else: 0 fi;
+ more_super:=max(superness,sqrt .77superness);
+ hein_super:=max(superness,sqrt .81225258superness); % that's $2^{-.3}$
+ clear_pen_memory;
+ if fine=0: fine:=1; fi
+ forsuffixes $=fine,crisp,tiny:
+%%% fine $ %%%% temporary formatting convention for MFT
+  if $>fudged.hair: $:=fudged.hair; fi
+  $.breadth:=$;
+  pickup if $=0: nullpen else: pencircle scaled $; $:=$-eps fi;
+  $.nib:=savepen; breadth_[$.nib]:=$;
+  forsuffixes $$=lft,rt,top,bot: shiftdef($.$$,$$ 0); endfor endfor
+%%% @ $ %%%% restore ordinary formatting for $
+ min_Vround:=max(fine.breadth,crisp.breadth,tiny.breadth);
+ if min_Vround<vround min_Vround: min_Vround:=vround min_Vround; fi
+ if flare<vround flare: flare:=vround flare; fi
+ forsuffixes $=vair,bar,slab,cap_bar,cap_band,thin_cap_band,thick_cap_band,
+   vair',vstem,cap_vstem,bold:
+  if $<min_Vround: $:=min_Vround; fi endfor
+ pickup pencircle scaled rule_thickness; rule.nib:=savepen;
+ math_axis:=good.y(math_axis#*hppp);
+ pickup pencircle scaled light_rule_thickness;
+ light_rule.nib:=savepen;
+ pickup pencircle xscaled cap_curve yscaled cap_hair rotated 30;
+ cal.nib:=savepen;
+ pair cal.extension; cal.extension:=(.75cap_curve,0) rotated 30;
+ pickup pencircle xscaled cap_curve yscaled cap_hair rotated 70;
+ tilted.nib:=savepen;
+ pickup pencircle xscaled curve yscaled cap_hair rotated 70;
+ med_tilted.nib:=savepen;
+ pickup pencircle xscaled cap_stem yscaled cap_hair rotated 30;
+ med_cal.nib:=savepen;
+ pickup pencircle xscaled stem yscaled cap_hair rotated 30;
+ light_cal.nib:=savepen;
+ pickup pencircle xscaled(cap_curve+dw) yscaled cap_hair rotated 30;
+ heavy_cal.nib:=savepen;
+ bot_flourish_line:=-.5u-o;
+ pair bend; bend=(.5u,0);
+ pair flourish_change; flourish_change=(4u,.2asc_height);
+ join_radius:=u;
+ currenttransform:=identity slanted slant
+  yscaled aspect_ratio scaled granularity;
+ if currenttransform=identity: let t_=relax
+ else: def t_ = transformed currenttransform enddef fi;
+ numeric paren_depth#; .5[body_height#,-paren_depth#]=math_axis#;
+ numeric asc_depth#; .5[asc_height#,-asc_depth#]=math_axis#;
+ body_depth:=desc_depth+body_height-asc_height;
+ shrink_fit:=1+hround(2letter_fit#*hppp)-2letter_fit;
+ if not string mode: if mode<=smoke: shrink_fit:=0; fi fi
+ enddef;
+
+def shiftdef(suffix $)(expr delta) =
+ vardef $ primary x = x+delta enddef enddef;
+
+def makebox(text rule) =
+ for y=0,asc_height,body_height,x_height,bar_height,-desc_depth,-body_depth:
+  rule((l,y)t_,(r,y)t_); endfor % horizontals
+ for x=l,r:   rule((x,-body_depth)t_,(x,body_height)t_); endfor % verticals
+ for x=u*(1+floor(l/u)) step u until r-1:
+  rule((x,-body_depth)t_,(x,body_height)t_); endfor % more verticals
+ if charic<>0:
+  rule((r+charic*pt,h.o_),(r+charic*pt,.5h.o_)); fi % italic correction
+ enddef;
+def maketicks(text rule) =
+ for y=0,h.o_,-d.o_:
+  rule((l,y),(l+10,y)); rule((r-10,y),(r,y)); endfor % horizontals
+ for x=l,r:
+  rule((x,10-d.o_),(x,-d.o_)); rule((x,h.o_-10),(x,h.o_)); endfor % verticals
+ if charic<>0:
+  rule((r+charic*pt,h.o_-10),(r+charic*pt,h.o_)); fi % italic correction
+ enddef;
+rulepen:=pensquare;
+
+vardef stroke text t =
+ forsuffixes e = l,r: path_.e:=t; endfor
+ if cycle path_.l:
+  errmessage "Beware: `stroke' isn't intended for cycles"; fi
+ path_.l -- reverse path_.r -- cycle enddef;
+
+vardef circ_stroke text t =
+ forsuffixes e = l,r: path_.e:=t; endfor
+ if cycle path_.l:
+  errmessage "Beware: `stroke' isn't intended for cycles"; fi
+ path_.l -- reverse path_.r .. cycle
+enddef;
+
+vardef super_arc.r(suffix $,$$) = % outside of super-ellipse
+ pair center,corner;
+ if y$=y$r: center=(x$$r,y$r); corner=(x$r,y$$r);
+ else: center=(x$r,y$$r); corner=(x$$r,y$r); fi
+ z$.r{corner-z$.r}...superness[center,corner]{z$$.r-z$.r}
+  ...{z$$.r-corner}z$$.r enddef;
+
+vardef super_arc.l(suffix $,$$) = % inside of super-ellipse
+ pair center,corner;
+ if y$=y$r: center=(x$$l,y$l); corner=(x$l,y$$l);
+ else: center=(x$l,y$$l); corner=(x$$l,y$l); fi
+ z$l{corner-z$l}...superness[center,corner]{z$$l-z$l}
+  ...{z$$l-corner}z$$l enddef;
+
+vardef angled_super_arc.r(suffix $,$$)(expr slant_dir) =
+ pair center,corner;
+ if y$=y$r:
+  center=z$$r+whatever*slant_dir; ypart center=y$r;
+  corner=z$r+whatever*slant_dir; ypart corner=y$$r;
+ else:
+  center=z$r+whatever*slant_dir; ypart center=y$$r;
+  corner=z$$r+whatever*slant_dir; ypart corner=y$r;
+ fi
+ z$.r{corner-z$.r}...superness[center,corner]{z$$.r-z$.r}
+  ...{z$$.r-corner}z$$.r enddef;
+
+vardef angled_super_arc.l(suffix $,$$)(expr slant_dir) =
+ pair center,corner;
+ if y$=y$r:
+  center=z$$l+whatever*slant_dir; ypart center=y$l;
+  corner=z$l+whatever*slant_dir; ypart corner=y$$l;
+ else:
+  center=z$l+whatever*slant_dir; ypart center=y$$l;
+  corner=z$$l+whatever*slant_dir; ypart corner=y$l;
+ fi
+ z$l{corner-z$l}...superness[center,corner]{z$$l-z$l}
+  ...{z$$l-corner}z$$l enddef;
+
+vardef pulled_super_arc.r(suffix $,$$)(expr superpull) =
+ pair center,corner;
+ if y$=y$r: center=(x$$r,y$r); corner=(x$r,y$$r);
+ else: center=(x$r,y$$r); corner=(x$$r,y$r); fi
+ z$r{corner-z$r}...superness[center,corner]{z$$r-z$r}
+  ...{z$$r-corner}z$$r enddef;
+
+vardef pulled_super_arc.l(suffix $,$$)(expr superpull) =
+ pair center,corner,outer_point;
+ if y$=y$r: center=(x$$l,y$l); corner=(x$l,y$$l);
+  outer_point=superness[(x$$r,y$r),(x$r,y$$r)];
+ else: center=(x$l,y$$l); corner=(x$$l,y$l);
+  outer_point=superness[(x$r,y$$r),(x$$r,y$r)]; fi
+ z$l{corner-z$l}
+  ...superpull[superness[center,corner],outer_point]{z$$l-z$l}
+  ...{z$$l-corner}z$$l enddef;
+
+vardef pulled_arc@#(suffix $,$$) =
+ pulled_super_arc@#($,$$)(superpull) enddef;
+
+vardef serif_arc(suffix $,$$) =
+ z${x$$-x$,0}...(1/3[(x$$,y$), 0.5[z$,z$$] ]){z$$-z$}...{0,y$$-y$}z$$ enddef;
+
+vardef penpos@#(expr b,d) =
+ if known b: if b<=0: errmessage "bad penpos"; fi fi
+ (x@#r-x@#l,y@#r-y@#l)=(b,0) rotated d;
+ x@#=.5(x@#l+x@#r); y@#=.5(y@#l+y@#r) enddef;
+
+newinternal currentbreadth;
+vardef nibstempos@# = pos@#(nib_stem,nib_angle) enddef;
+vardef nibhairpos@# = pos@#(nib_hair,nib_angle + 90) enddef;
+
+vardef nibstems(text t) = forsuffixes s=t: nibstempos.s; endfor enddef;
+vardef nibhairs(text t) = forsuffixes s=t: nibhairpos.s; endfor enddef;
+vardef nibthinstems(text t) =
+    forsuffixes $=t: pos$(stem,nib_angle); endfor
+enddef;
+
+def overlap(suffix $,$$)suffix amt =
+ z$r=z$$l+if overlap_amt.amt: .5[nib_hair,stem] else: nib_hair fi*nib_dir;
+enddef;
+boolean overlap_amt, overlap_amt.more;
+overlap_amt=false; overlap_amt.more=true;
+
+vardef overlap_point@#(suffix $,$$,$$$,$$$$) =
+ z@#=whatever[z$r,z$$r]=whatever[z$$$l,z$$$$l];
+enddef;
+
+vardef pos@#(expr b,d) =
+ if known b: if b<=currentbreadth: errmessage "bad pos"; fi fi
+ (x@#r-x@#l,y@#r-y@#l)=(b-currentbreadth,0) rotated d;
+ x@#=.5(x@#l+x@#r); y@#=.5(y@#l+y@#r) enddef;
+def numeric_pickup_ primary q =
+ currentpen:=pen_[q];
+ pen_lft:=pen_lft_[q];  pen_rt:=pen_rt_[q];
+ pen_top:=pen_top_[q];  pen_bot:=pen_bot_[q];
+ currentpen_path:=pen_path_[q];
+ if known breadth_[q]: currentbreadth:=breadth_[q]; fi enddef;
+
+def angle_points(suffix $,$$,$$$)(expr diri,dirii) =
+ forsuffixes e=r,,l:
+  z$$e=z$e+whatever*diri=z$$$e+whatever*dirii;
+ endfor
+enddef;
+
+% My own macros
+def force_point(suffix $, $$) =
+ forsuffixes e = r,,l: x$e:=x$$e; y$e:=y$$e; endfor
+enddef;
+
+vardef lineintersection(suffix $,$$,$$$,$$$$) =
+ pair p_; p_=whatever[z$,z$$]=whatever[z$$$,z$$$$]; p_
+enddef;
+
+def same_pos(suffix @, @@) =
+ penpos@(length(z@@r-z@@l), if z@@r=z@@l: 0 else: angle(z@@r-z@@l) fi)
+enddef;
+vardef rev_pos@#(suffix $) = z@#r=z$l; z@#l=z$r; z@#=z$ enddef;
+
+vardef x_intersection@#(suffix $,$$)=
+ z@#=whatever[z1$,z4$]=whatever[z2$$,z3$$]
+enddef;
+
+vardef angled_jut(expr jut,stem_dir)=
+ hround(jut*((abs cosd(angle(w,h)))**angle_jut_power))
+enddef;
+
+vardef lc_spur@#(expr pos)(suffix $) =
+ numeric n_;
+ if pos<y$: % spur goes down and left
+  n_=-1;
+  x@#=x$l-.3hair;
+ else: % spur goes up and right
+  n_=1;
+  x@#=x$r+.3hair;
+ fi
+ y@#=pos+n_*.5[oo,o];
+ if n_=1: reverse
+ (z$l{(0,n_)}..tension 2..z@#l--z@#r...{(0,-n_)}z$r) % TODO: should use pen_end
+ else:
+ (z$l{(0,n_)}...z@#l--z@#r..tension 2..{(0,-n_)}z$r) % TODO: should use pen_end
+ fi
+enddef;
+
+def disable_transforms_around(expr p) =
+ if slant>0:
+  transform new_transform; new_transform=currenttransform slanted -slant;
+  pair p_; p_=(p.t_) - (p transformed new_transform);
+  save currenttransform;
+  transform currenttransform;
+  currenttransform=new_transform shifted p_
+ fi
+enddef;
+
+vardef invert_transforms_around(expr p,val) =
+ if slant>0:
+  val shifted -p slanted -slant shifted p
+ else: val
+ fi
+enddef;
+
+adjust_slant=0;
+adjust_slant.less=.5;
+adjust_slant.more=-.3;
+adjust_slant.back=1.7;
+vardef slant_adjusted_jut(expr jut)suffix amount =
+ max(eps,slant[jut,adjust_slant.amount*jut])
+enddef;
+
+vardef ic# = charic enddef;
+vardef h# = charht enddef;
+vardef w# = charwd enddef;
+vardef d# = chardp enddef;
+
+let {{=begingroup; let }}=endgroup;
+def .... = .. tension atleast .9 .. enddef;
+def less_tense = save ...; let ...=.... enddef;
+def ?? = hide(showvariable x,y) enddef;
+
+let semi_ =;; let colon_ = :; let endchar_ = endchar;
+def iff expr b = if b:let next_=use_it else:let next_=lose_it fi; next_ enddef;
+def use_it = let : = restore_colon; enddef;
+def restore_colon = let : = colon_; enddef;
+def lose_it = let endchar=fi; inner cmchar; let ;=fix_ semi_ if false enddef;
+def fix_=let ;=semi_; let endchar=endchar_; outer cmchar; enddef;
+def always_iff = let : = endgroup; killboolean enddef;
+def killboolean text t = use_it enddef;
+outer cmchar;

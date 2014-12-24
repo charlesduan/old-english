@@ -1,0 +1,71 @@
+\documentclass[12pt]{article}
+\usepackage{geometry}
+\geometry{margin=1in}
+
+\usepackage{fontspec}
+\setmainfont{Cloister Black}
+
+\newdimen\fontmaxheight
+\newdimen\fontmaxdepth
+\newdimen\widthunit
+
+\def\letterbox#1{%
+    \setbox0=\hbox{#1}%
+    \hbox{%
+        \horizline{0pt}%
+        \horizline{\fontmaxheight}%
+        \horizline{-\fontmaxdepth}%
+        \horizlinesuite
+        \copy0\relax\hskip-\wd0\relax
+        \vrule
+        \hskip-.4pt
+        \leaders\hbox{%
+            \hskip\widthunit
+            \vrule height \fontmaxheight depth \fontmaxdepth
+            \hskip-.4pt
+        }\hskip\wd0\relax\vrule
+    }%
+}
+\def\horizline#1{\raise#1\hbox to 0pt{\leaders\hrule\hskip\wd0\relax\hss}}
+
+\def\eachbox#1#2\relax{%
+    \letterbox{#1}\space
+    \def\eachboxtest{#2}\ifx\eachboxtest\empty\else
+        \expandafter\eachbox
+    \fi #2\relax
+}
+
+\begin{document}
+
+\fontsize{120pt}{144pt}\selectfont
+
+\setbox0=\hbox{(A!j,/)}
+\fontmaxheight=\ht0
+\fontmaxdepth=\dp0
+\setbox0=\hbox{I} \edef\capheight{\the\ht0}
+\setbox0=\hbox{x} \edef\xheight{\the\ht0}
+\setbox0=\hbox{l} \edef\ascheight{\the\ht0}
+\dimen0=\xheight\relax \divide\dimen0 by 2 \edef\halfxheight{\the\dimen0}
+\dimen0=\capheight\relax \divide\dimen0 by 2 \edef\halfcapheight{\the\dimen0}
+
+\widthunit=1em \divide\widthunit by 18
+
+\def\horizlinesuite{%
+    \horizline{\xheight}%
+    \horizline{\halfxheight}%
+    \horizline{\ascheight}%
+}
+\leavevmode
+\eachbox abcdefghijklmnopqrstuvwxyz\relax
+
+\def\horizlinesuite{%
+    \horizline{\capheight}%
+    \horizline{\halfcapheight}%
+}
+\leavevmode
+\eachbox ABCDEFGHIJKLMNOPQRSTUVWXYZ\relax
+
+\leavevmode
+\eachbox 1234567890\relax
+
+\end{document}

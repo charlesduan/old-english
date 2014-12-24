@@ -1,0 +1,63 @@
+if unknown oebase: input oebase fi
+
+nodisplays;
+
+font_identifier := "old-english-regular";
+
+nib_angle := 35;
+nib_dir := dir nib_angle;
+nib_draw_dir := dir 150;
+
+boolean small_caps;
+small_caps = false;
+
+input params;
+
+nib_stem# := stem# / (xpart nib_dir);
+nib_hair# := hair# / (xpart nib_dir);
+
+slant := 0;
+math_fitting := false;
+arc_join := .2;
+bowl_join := .1;
+arc_tension := 1.2;
+multi_jut_ratio := .75;
+acute_darkness=.2;
+thick_hair#=0.4pt#;
+thick_vair#=0.45pt#;
+small_flare#=1.2pt#;
+t_jut#=1.25u#;
+sloped_serif_dark=1/4;
+i_dot_size#=1.25pt#;
+ess_ratio=4.5;
+lc_apex_corr#=0.0pt#;
+lc_apex_o#=0.15pt#;
+beak_jut_big#=0.16pt#;
+A_jut#:=.9pt#;
+A_bar_height_ratio=.36;
+thick_cap_band#=.5pt#;
+thin_cap_band#=.36pt#;
+w_mid_corr#=.45pt#;
+E_mid_darkness=.45;
+dot_o#=.75o#;
+angle_jut_power:=1;
+inset_factor:=1;
+%input widths;
+
+
+% The Computer Modern Roman family of fonts (by D. E. Knuth, 1979--1985)
+
+%font_coding_scheme:="TeX text";
+%spanish_shriek=oct"074"; spanish_query=oct"076";
+
+mode_setup; font_setup;
+input mgromanu;  % Roman uppercase
+input mgromanl;  % Roman uppercase
+input mgromand;  % Arabic numbers
+input mgromanp;
+input mgpunct;
+input mgcomlig;
+%input mgromlig;
+input mgascii;
+
+bye.

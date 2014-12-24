@@ -1,0 +1,351 @@
+% THIS IS THE OFFICIAL COMPUTER MODERN SOURCE FILE romand.mf BY D E KNUTH.
+% IT MUST NOT BE MODIFIED IN ANY WAY UNLESS THE FILE NAME IS CHANGED!
+
+% Computer Modern Roman digits:
+% This file contains the ten digits in so-called roman style.
+% Character codes \0060 through \0071 are generated.
+
+% All digits have the same height, width, depth, and italic correction.
+
+cmchar "The numeral 0";
+beginchar("0",9u#,fig_height#,0);
+italcorr fig_height#*slant-.5u#;
+adjust_fit(0,0);
+penpos1(vair,90); penpos3(vair,-90);
+penpos2(.5[curve,cap_curve],180); penpos4(.5[curve,cap_curve],0);
+%if not monospace: interim superness:=sqrt(more_super*hein_super); fi
+x2r=0; x4r=w; x1=x3=.5w;
+y1r=h+oo; y3r=-oo; y2=y4=.5h-vair_corr; y2l:=y4l:=.52h;
+make_paths1(rev.l) pulled_arc.e(1,2) & pulled_arc.e(2,3)
+ & pulled_arc.e(3,4) & pulled_arc.e(4,1) & cycle;  % bowl
+fill rpath1; unfill lpath1;
+penlabels(1,2,3,4); endchar;
+
+cmchar "The numeral 1";
+beginchar("1",9u#,fig_height#,0);
+italcorr fig_height#*slant-.5u#;
+adjust_fit(0,0);
+numeric light_stem; light_stem=hround .6[stem',cap_stem'];
+pos1(light_stem,0); pos2(light_stem,0);
+x1l=x2l=hround(.5(w+.35u)-.5cap_stem'); y1=h+oo; y2=0;
+p2=dish_serif_path(2,1,a,.35,x1l,b,.35,w-x1r); % serif
+pos3(hair,0); pos4(bar,-90);
+z3r=z1r; x4=0; y3l-y4l=1.75bar;
+p4=bracket_path(right,z4r,c,.3,z2l,down);
+pair d_; d_=z4l-z3l yscaled 1.3;
+fill p4--p2--pen_rlend3(up,crisp,d_){d_}
+ ...{left}pen_lrend4(left,crisp,right)--cycle;
+penlabels(1,2,3,4); endchar;
+
+cmchar "The numeral 2";
+beginchar("2",9u#,fig_height#,0);
+italcorr fig_height#*slant-.5u#;
+adjust_fit(0,0);
+numeric arm_thickness, hair_vair; hair_vair=.25[vair,hair];
+arm_thickness=Vround(if hefty:slab+2stem_corr else:.8[stem,cap_stem] fi);
+pos7(arm_thickness,-90); pos8(hair,0);
+y7r=0; x7=0; x8r=w; y8=good.y(y7l+.53beak)+eps;
+p8=arm_path(7,8,a,.7beak_darkness,3beak_jut);  % arm and beak
+pos3(.4[curve,cap_curve],0);
+y2r=h+oo; x3r=w; y3+.5vair=.77h;
+if serifs:
+ numeric bulb_diam; bulb_diam=.7[small_flare,flare];
+ pos0(bulb_diam,180); pos1(cap_hair,180);
+ x0r=x1r=hround .3u;
+ set_bulb_points(slab,.46,1,3,2,1,0);
+ p0=bulb_path(2,1,0,right);  % bulb and arc
+else: x2l:=x2l-.25u; pos1(flare,angle(-9u,h));
+ lft x1r=hround .75u; bot y1l=vround .7h; y1r:=good.y y1r+eps; x1l:=good.x x1l;
+ filldraw stroke term.e(2,1,left,.9,4); fi  % terminal and arc
+pos5(thick_vair,0); pos6(1.2thick_vair,0);
+x6l=x7; y6=.6y7l;
+pos4(.25[hair_vair,cap_stem],angle(z6-z3)+90);
+z4=.5[z3,z6];
+z5l=z6l+(.3(z4l-z6l) yscaled 1.2);
+make_paths1(rev.r) super_arc.e(2,3) & z3e{down}..z4e..z5e..z6e;
+fill var_combine(p8--z7l,rpath1) & p0 & lpath1--pen_angle(down,z7r,tiny,right)
+ --cycle;
+penlabels(0,1,2,3,4,5,6,7,8); endchar;
+
+cmchar "The numeral 3";
+beginchar("3",9u#,fig_height#,0);
+italcorr fig_height#*slant-.5u#;
+adjust_fit(0,0);
+numeric top_thickness,mid_thickness,bot_thickness;
+top_thickness=max(fine.breadth,.9vair-2vair_corr);
+mid_thickness=max(fine.breadth,vround 3/5vair);
+bot_thickness=max(fine.breadth,vround(.9vair-vair_corr));
+y2r=h+oo;
+pos3(max(fine.breadth,.5[curve,cap_curve]-stem_corr),0);
+x3r=w-hround .3u;
+pos4(mid_thickness,-90); pos5(vair,-90); pos5'(thick_vair,-90);
+pos6(mid_thickness,90);
+pos7(.6[curve,cap_curve],0); x7r=w; x5=hround 3.25u; x5-x5'=1.2(y5'l-y5'r);
+y8r=-oo;
+y3=.53[y4r,y2r]; y7=.49[y6r,y8r];
+y5'=y5=vround(.515h); y5r=y6l;
+z4l=z5l; x6r=x5r;
+if serifs: numeric bulb_diam[];
+ bulb_diam1=small_flare; bulb_diam2=.5[small_flare,flare];
+ pos0(bulb_diam1,180); pos1(hair,180);
+ x0r=.3u;
+ set_bulb_points(top_thickness,.52,1, 3,2,1,0);
+ p0=bulb_path(2,1,0,right);  % upper bulb
+ fill p0--cycle;
+ pos10(bulb_diam2,-180); pos9(cap_hair,-180);
+ x10r=0;
+ set_bulb_points(bot_thickness,.52,.95, 7,8,9,10);
+ p10=bulb_path(8,9,10,left);
+ fill p10--cycle;
+ %bulb(8,9,10);  % lower bulb
+else: pos1(.5[vair,flare],angle(-8u,h));
+ lft x1r=hround u; bot y1l=vround .75h+o;
+ y1r:=good.y y1r+eps; x1l:=good.x x1l;
+ pos9(bot_thickness,angle(-2u,-h));
+ lft x9r=hround .75u; top y9l=vround .25h-o;
+ y9r:=good.y y9r-eps; x9l:=good.x x9l;
+ filldraw stroke term.e(2,1,left,1,4);  % upper terminal
+ filldraw stroke term.e(8,9,left,1,4); fi  % lower terminal
+make_paths234(rev.r) pulled_super_arc.e(2,3)(.5superpull)
+ & pulled_super_arc.e(3,4)(.5superpull);
+make_paths678(rev.r) pulled_super_arc.e(6,7)(.5superpull)
+ & pulled_super_arc.e(7,8)(.5superpull);  % lower bowl
+p5=z5l{left}...z5'l{left}...z5'r{right}...z5r{right};
+fill p0 & lpath234 & p5 & lpath678 & p10 & combine(rpath678, rpath234) & cycle;
+penlabels(0,1,2,3,4,5,6,7,8,9,10); endchar;
+
+cmchar "The numeral 4";
+beginchar("4",9u#,fig_height#,0);
+italcorr fig_height#*slant-.5u#;
+adjust_fit(0,0);
+numeric light_stem, light_stem', diag_stem, alpha, cut; cut=.75notch_cut;
+light_stem=hround .4[fudged.stem,fudged.cap_stem];
+light_stem'=hround max(tiny.breadth,light_stem-2stem_corr);
+diag_stem=max(tiny.breadth,.4[vair,fudged.hair]);
+pos5(1.2cap_bar,90); pos6(1.2cap_bar,90);
+x5=0; x6=w;
+y5r=vround(if serifs: 5/18[slab,h-light_stem]+1
+ else:.35(h-light_stem) fi+.5cap_bar);
+z4l=z5r; y5=y6; y2=y6r; y2'=y6l; x1r=x2r=w-2(y6r-y6l);
+penpos1(light_stem',0); penpos2(light_stem',0); y1=y3=h+apex_o;
+x3r=x1r; alpha=diag_ratio(1,diag_stem,y3-y4l,x3r-x4l);
+penpos3(alpha*diag_stem,0); penpos4(alpha*diag_stem,0);
+x0=x1l; z0=whatever[z3r,z4r];
+x5'=x5; z5''=z5'+penoffset z4-z3 of currentpen=whatever[z4l,z3l];
+pos7(light_stem,0); x7r=x1r; y7=0;
+pos2'(light_stem,0); x2'=x7;
+p7=dish_serif_path(7,2,a,1/3,hround(w-x7r+.2hair), b,1/3,hround(w-x7r-.2hair));
+fill pen_pointend(2r,1r,crisp,3l,4l)
+ --pen_pointend(3l,4l,crisp,5l,2'l)--z2'l--p7--z2'r
+ --pen_lrend6(right,crisp,left)--z2r--cycle;
+unfill z0--z4r--z2l--cycle;
+penlabels(0,1,2,2',3,4,5,6,7); endchar;
+
+cmchar "The numeral 5";
+beginchar("5",9u#,fig_height#,0);
+italcorr fig_height#*slant-.5u#;
+adjust_fit(0,0);
+numeric bot_thickness,light_hair;
+bot_thickness=max(fine.breadth,vround(slab-vair_corr));
+light_hair=hround(.9cap_hair if hefty: -\\2stem_corr fi);
+pos5(vair,180); pos6(vair,90);
+y5=vround(.58h-vair); y6r=max(vround .61803h+oo,y6r+y5+eps-y6l);
+pos3(light_hair,0); pos4(light_hair,0);
+x3l=2.5hair; x4l=x5r=.4u+hair; y4=y5;
+y3=h if not hefty: +\\oo fi;
+pos7(.5[cap_stem,cap_curve],0);
+x7r=w; x6=.5[x5,x7]; x6l:=.5[x5l,x7l];
+y7=.5[y6r,y8r]; y8r=-oo;
+if serifs: pos9(hair,-180); x10r=0;
+ pos10(.5[small_flare,flare],-180);
+ set_bulb_points(bot_thickness,.55,1, 7,8,9,10);
+ p10=bulb_path(8,9,10,left);
+else: pos9(3/7[bot_thickness,flare],angle(-7u,-h));
+ lft x9r=hround(tiny.lft x3l-.75u); bot y9r=vround .15h-o;
+ x9l:=good.x x9l; y9l:=good.y y9l;
+ filldraw stroke term.e(8,9,left,1,4); fi  % terminal
+if hefty: pickup crisp.nib; pos1(slab,90); pos2(hair,0);
+ top y1r=h; x1=x4; rt x2r=hround(w-1.5u); y2=y1l-eps;
+ arm(1,2,a,0,0);  % arm
+else: numeric flag_breadth; flag_breadth=.8[vair,cap_curve];
+ pos1(flag_breadth,90); pos2(whatever,50);
+ y2r-y2l=.8flag_breadth;
+ pos0(.4vair,90); y2r=y1r-vair; y0r=y1r;
+ z1r=z3l+.5hair*right;
+ x2r=.5[x1,x0]; x0=hround(w-.7hair);
+ make_paths120(rev.r) z1e...{right}z2e...z0e; % flag
+fi
+make_paths56(rev.l) z6e{left}..tension .9 and 1..{x5-x6,3(y5-y6)}z5e;  % link
+make_paths678(rev.r) pulled_arc.e(6,7) & pulled_arc.e(7,8);  % bowl
+pos4'(.5[hair,stem],0);
+.8[x4'l,x4'r]=.8[x4l,x4r];
+y4'l=y4l-1vair;
+p4=z4l{direction infinity of rpath56}...z4'l{down}...z4'r{up}...z4r
+ ..(0.3[z4r,z3r]);
+fill combine(p4,lpath56) & lpath678 & p10 & rpath678
+ & var_combine(combine(rpath56,z4r--z3r), lpath120)...rpath120
+ --pen_angle(left,z3l,tiny,z4l-z3l)--cycle;
+penlabels(0,1,2,3,4,4',5,6,7,8,9,10); endchar;
+
+cmchar "The numeral 6";
+beginchar("6",9u#,fig_height#,0);
+italcorr fig_height#*slant-.5u#;
+adjust_fit(0,0);
+numeric top_thickness,bot_thickness,side_thickness,pull;
+top_thickness=max(fine.breadth,vround(slab-2vair_corr));
+bot_thickness=max(fine.breadth,vround(slab-vair_corr));
+side_thickness=max(fine.breadth,hround 1/3[curve,cap_curve]);
+pull=min(.25,1.5superpull);
+pos3(side_thickness,-180); pos4(bot_thickness,-90);
+pos5(side_thickness,0); pos6(vair,90);
+x3r=w-rt x5r=0;
+x4=x6-.1u=.5w;
+y2r=h+oo; y3=.5[y2r,y4r]; y4r=-oo;
+y5=.5[y4,y6]; y6=vround .57h+oo;
+path p; {{interim superness:=more_super; p=pulled_super_arc.l(3,4)(pull)}};
+numeric t; t=xpart(p intersectiontimes((x3r,y5)--(x4,y5)));
+p7=reverse subpath (t,infinity) of p;
+pos7(thin_join,180); z7l=point t of p;
+(x,y6r)=whatever[z7l,z6l]; x6r:=min(x,.5[x5r,x6]);
+if serifs: pos1(thick_hair,-360); pos0(small_flare,-360);
+ x0r=w-.3u;
+ set_bulb_points(top_thickness,.65,.9,3,2,1,0);
+ p0=bulb_path(2,1,0,right);
+else: pos1(vround .1[top_thickness,flare],90);
+ top y1r=vround .97h+o; rt x1=hround(x5-.5);
+ filldraw stroke term.e(2,1,right,.9,4); fi  % terminal
+make_paths1(rev.l) pulled_super_arc.e(2,3)(pull)
+ & {{interim superness:=more_super; pulled_super_arc.e(3,4)(pull)}};
+make_paths2(rev.l) {{less_tense; pulled_super_arc.e(4,5)(pull)
+ & pulled_super_arc.e(5,6)(pull)}}
+ & z6e{left}...{direction t of p}z7e;  % arc and bowl
+fill p0 & rpath1 & combine(rpath2,lpath1) & cycle;
+unfill lpath2 & p7 & cycle;
+penlabels(0,1,2,3,4,5,6,7); endchar;
+
+cmchar "The numeral 7";
+beginchar("7",9u#,fig_height#,0);
+italcorr fig_height#*slant-.5u#;
+adjust_fit(0,0);
+numeric arm_thickness, bot_width, top_shift, top_hair;
+if hefty: arm_thickness=Vround(slab+2stem_corr); top_shift=0;
+ bot_width=hround .51[curve,cap_curve]; top_hair=.4[thin_join,bot_width];
+else: arm_thickness=Vround .8[stem,cap_stem]; top_shift=.5u;
+ bot_width=.3[small_flare,flare]; top_hair=cap_hair; fi
+if top_hair<tiny.breadth: top_hair:=tiny.breadth; fi
+pos2(arm_thickness,90); pos1(hair,180);
+y2r=h; x2=w;
+x1r=0; y1=good.y(y2l-.86beak)-eps;
+p1={{
+ save beak_inangle; beak_inangle=-hair/(y2r-y1);
+ arm_path(2,1,a,.8beak_darkness,-hair)  % arm and beak
+}};
+pos4(top_hair,0); pos6(bot_width,0);
+y4=max(h-arm_thickness,h-slab,y2l); x4r=x2;
+x6l=hround(.5w-.5bot_width);
+if serifs:
+ y6-.5bot_width=-oo;
+ z6'=z6+(0,-.5bot_width);
+ pos3(.85bot_width,0);
+ z3=z6+up*.8bot_width;
+ y6l:=y6l+.2bot_width;
+ p6=z6l{down}..z6'{right}..{up}z6r;
+else: y6=-oo; fi
+if hefty: erase fill rt z4r--z4r...{down}z6r
+  --(rt x4r,y6)--cycle;  % erase excess at top
+ filldraw stroke z4e...z3e...{down}z6e;  % stroke
+else:
+ pos5(top_hair,0); y5=2/3h; z5=z4+whatever*(z6-z4 xscaled 1.33);
+ z4'l=whatever[z4l,z5l]; y4'l=y2l; x4l:=x4'l; y4l:=y4'l;
+ make_paths1(rev.r) z4e---z5e...z3e...{down}z6e; % stroke
+ fill p1--lpath1 & p6 &rpath1--pen_angle(up,z2r,tiny,left)--cycle;
+fi
+penlabels(1,2,3,4,5,6); endchar;
+
+cmchar "The numeral 8";
+beginchar("8",9u#,fig_height#,0);
+italcorr fig_height#*slant-.5u#;
+adjust_fit(0,0);
+numeric top_thickness,mid_thickness,bot_thickness,upper_side,lower_side,theta;
+top_thickness=max(fine.breadth,vround(vair-2vair_corr));
+bot_thickness=max(fine.breadth,vround(vair-vair_corr));
+x0=.5w; y0=.53h;
+if hefty: mid_thickness=vround 2/3vair; upper_side=hround(stem-3stem_corr);
+ lower_side=hround min(.5[curve,cap_curve]-stem_corr,upper_side+.25u);
+ penpos1(top_thickness,90); penpos2(upper_side,180);
+ penpos3(mid_thickness,270); penpos8(upper_side,360);
+ penpos4(mid_thickness,90); penpos7(lower_side,180);
+ penpos6(bot_thickness,270); penpos5(lower_side,360);
+ penpos0(vair,90); z3l=z0r; z4l=z0l;
+ x1=x6=.5w; x2r=w-x8r=.25u; x7r=w-x5r=0;
+ y1r=h+oo; y6r=-oo; y2=y8=.5[y1l,y3l]; y7=y5=.5[y4l,y6l];
+ filldraw stroke pulled_arc.e(1,2)
+  & pulled_arc.e(2,3);  % left half of upper bowl
+ filldraw stroke pulled_arc.e(4,5)
+  & pulled_arc.e(5,6);  % right half of lower bowl
+ filldraw stroke pulled_arc.e(6,7)
+  & pulled_arc.e(7,4);  % left half of lower bowl
+ filldraw stroke pulled_arc.e(3,8)
+  & pulled_arc.e(8,1);  % right half of upper bowl
+else:
+ numeric eight_angle_width; eight_angle_width=21u;
+ theta=90-angle(eight_angle_width,h); slope:=-h/eight_angle_width;
+ upper_side=max(fine.breadth,hround(.6[hair,stem]-stem_corr));
+ lower_side=hround(.5[hair,stem]+stem_corr);
+ if lower_side>1.2upper_side: upper_side:=1.2lower_side; fi
+ pos1(top_thickness,-90); pos6(bot_thickness,-90);
+ x1=x6=.5w; y1l=h+oo; y6r=-oo; pos0(cap_stem,theta);
+ x2l=hround .5u; w-x8l=hround .25u; x7r=w-x5r=0;
+ x2r-x2l=upper_side-fine; x5r-x5l=lower_side-fine;
+ ellipse_set(1l,2l,3l,0l); ellipse_set(1r,2r,3r,0r);
+ ellipse_set(6l,5l,4l,0l); ellipse_set(6r,5r,4r,0r);
+ numeric tau; tau=max(.8,.20710678/(superness-.5));
+ make_paths1(rev.r) z1e{left}..tension atleast tau..z2e{down}
+  ..z3e---z4e..z5e{down}..tension atleast tau..z6e{left};  % S stroke
+ pos7(.8[thick_hair,stem],180); pos8(upper_side,180);
+ y7=.35[y5l,y5r]; y8=.5[y2l,y2r]; pos9(vair,90); z9=z0;
+ make_paths2(rev.l) z1e{right}..tension atleast tau..z8e{down}
+  ..tension atleast tau and atleast 1..{-18u,-.618h}z9e; % upper right stroke
+ make_paths3(rev.r) z6e{left}..tension atleast tau..z7e{up}
+  ..tension atleast tau and atleast 1..{18u,.5h}z9e; % lower left stroke
+fill combine(rpath1,lpath2) & combine(lpath1,rpath3) & cycle;
+unfill combine(rpath2,rpath1) & cycle;
+unfill combine(lpath3,lpath1) & cycle;
+fi
+penlabels(0,1,2,3,4,5,6,7,8,9); endchar;
+
+cmchar "The numeral 9";
+beginchar("9",9u#,fig_height#,0);
+italcorr fig_height#*slant-.5u#;
+adjust_fit(0,0);
+numeric top_thickness,bot_thickness,side_thickness,pull;
+top_thickness=max(fine.breadth,vround(slab-2vair_corr));
+bot_thickness=max(fine.breadth,vround(vair-vair_corr));
+side_thickness=max(fine.breadth,hround 1/3[curve,cap_curve]);
+pull=min(.25,1.5superpull);
+pos3(side_thickness,0); pos4(top_thickness,90);
+pos5(side_thickness,180); pos6(vair,270);
+w-x3r=x5r=0;
+x4-.1u=x6+.1u=.5w;
+y2r=-oo; y3=.5[y2r,y4r]; y4r=h+oo;
+y5=.5[y4,y6]; y6=vround .43h-oo;
+path p; {{interim superness:=more_super; p=pulled_super_arc.l(3,4)(pull)}};
+numeric t; t=xpart(p intersectiontimes((x3r,y5)--(x4,y5)));
+pos7(thin_join,360); z7l=point t of p;
+p7=reverse subpath (t,infinity) of p;
+(x,y6r)=whatever[z7l,z6l]; x6r:=max(x,.5[x5r,x6]);
+if serifs: pos1(thick_hair,-180); pos0(small_flare,-180);
+ x0r=.4u;
+ set_bulb_points(bot_thickness,.65,.9, 3,2,1,0);
+ p0=bulb_path(2,1,0,left);
+else: pos1(.1[bot_thickness,flare],-120);
+ bot y1r=vround .07h-o; lft x1r=hround 1.3u;
+ filldraw stroke term.e(2,1,left,.9,4); fi  % terminal
+make_paths1(rev.l) pulled_super_arc.e(2,3)(pull)
+ & {{interim superness:=more_super; pulled_super_arc.e(3,4)(pull)}};
+make_paths2(rev.l) {{less_tense; pulled_super_arc.e(4,5)(pull)
+ & pulled_super_arc.e(5,6)(pull)}}
+ & z6e{right}...{direction t of p}z7e;  % arc and bowl
+fill p0 & rpath1 & combine(rpath2,lpath1) & cycle;
+unfill lpath2 & p7 & cycle;
+penlabels(0,1,2,3,4,5,6,7); endchar;
