@@ -106,6 +106,9 @@ boolean square_dots,hefty,serifs,
 % New booleans
 boolean square_ends;
 
+def nib_align(expr e,f) = e=f+whatever*nib_dir enddef;
+def nib_draw_align(expr e,f) = e=f+whatever*nib_draw_dir enddef;
+
 boolean dark,dark.dark,skewed,skewed.skewed; % for fast option testing
 dark=skewed=false; dark.dark=skewed.skewed=true;
 
@@ -142,31 +145,6 @@ vardef special_serif_inner_juts(expr bias,gap)(suffix $,@,$$,@@,$$$) =
   (0,0)
  fi
 enddef;
-
-vardef serif(suffix $,$$,@)  % serif at |z$| for stroke from |z$$|
-  (expr darkness,jut) suffix modifier =
- pickup crisp.nib; numeric bracket_height; pair downward;
- bracket_height=if dark.modifier: 1.5 fi\\ bracket;
- if y$<y$$: y@2=min(y$+bracket_height,y$$);
-  top y@1-slab=bot y@0+eps=tiny.bot y$; downward=z$-z$$;
-  if y@1>y@2: y@2:=y@1; fi
- else: y@2=max(y$-bracket_height,y$$);
-  bot y@1+slab=top y@0-eps=tiny.top y$; downward=z$$-z$;
-  if y@1<y@2: y@2:=y@1; fi fi
- y@3=y@2; z@3=whatever[z$,z$$];
- if jut<0: z@2+penoffset downward of currentpen =
-   z$l+penoffset downward of pen_[tiny.nib]+whatever*downward;
-  lft x@0=lft x@1=tiny.lft x$l+jut;
-  if x@3<x@2+eps: x@3:=x@2+eps; fi
- else: z@2-penoffset downward of currentpen =
-   z$r-penoffset downward of pen_[tiny.nib]+whatever*downward;
-   rt x@0=rt x@1=tiny.rt x$r+jut;
-   if x@3>x@2-eps: x@3:=x@2-eps; fi fi
- pair corner; ypart corner=y@1; corner=z@2+whatever*downward;
- filldraw z@2{z$-z$$}
-  ...darkness[corner,.5[z@1,z@2] ]{z@1-z@2}
-  ...{jut,0}z@1--z@0--(x$,y@0)--z@3--cycle; % the serif
- labels (@1,@2); enddef;
 
 vardef serif_path(suffix $,$$,@)
   (expr darkness,jut,jut_dir) suffix modifier =
@@ -240,6 +218,75 @@ def dish_serif(suffix $,$$,@)(expr left_darkness,left_jut)
   erase fill rev_
    ((x@1,dish_out)..(x$,dish_in){right}..(x@@1,dish_out)--cycle);
  fi enddef;
+
+vardef tick_path@#(suffix $,@)(expr vert_dir,wid) =
+ if wid>0:
+  z@1r=z$l;
+  x@2r=x$r+wid; nib_align(z@2r,z$);
+ else:
+  x@1r=x$l+wid; nib_align(z@1r,z$);
+  z@2r=z$r;
+ fi
+ if ypart vert_dir<0:
+  pos@1(nib_hair,nib_angle+90);
+  pos@2(nib_hair,nib_angle+90);
+  make_paths@#(rev.r) z@1e--z@2e;
+ else:
+  pos@1(nib_hair,nib_angle-90);
+  pos@2(nib_hair,nib_angle-90);
+  make_paths@#(rev.l) z@1e--z@2e;
+ fi
+enddef;
+
+vardef swoop_in_path@#(suffix $,$$,@) =
+ if unknown y$: y$=y$$l; fi
+ pair d_; d_=(z$$l-z$)/abs(z$$l-z$);
+ z@1l=.5[z$,z$$l]+(d_*if x$$-x$>5u: .5stem else: .3stem fi rotated 90);
+ z@1r=z@1l shifted (z$$r-z$$l);
+ penlabels(@1);
+ lpath@#:=z$...{d_}z@1l...z$$l;
+ rpath@#:=reverse(z${direction 0 of lpath@# rotated 20}...{d_}z@1r...{direction
+ infinity of lpath@#}z$$r);
+enddef;
+
+vardef swoop_out_path@#(suffix $,$$) =
+ if unknown y$$: y$$=y$r; fi
+ lpath@#:=z$l{-nib_draw_dir}...z$$;
+ rpath@#:=z$$...{nib_draw_dir}z$r;
+enddef;
+
+vardef side_hook_path(suffix $) =
+ save p_; pair p_;
+ p_=z$l-(1.5u,hair);
+ z$r{(z$r-z$l) rotated 90}...{down}p_ & p_{dir 70}...{(z$r-z$l) rotated -110}z$l
+enddef;
+
+vardef small_point_path(suffix $,$$,@)(expr wid) =
+ save d_; pair d_; d_=nib_dir rotated 20;
+ save h_; h_=wid*xpart(d_)/(1-ypart(d_));
+ nib_align(z@1,z$);
+ same_pos(@2,$);
+ z@2=whatever[z$,z$$];
+ z@3=whatever[z$l,z$r];
+ if y$>y$$:
+  x@1=x$r+wid;
+  y@2r=y@1-h_;
+  x@3=x$l+(y$l-y@2l)*xpart(nib_dir);
+  z@2r{z$r-z$$r}...{d_}z@1 & z@1{-nib_dir}---z@3...{z$$l-z$l}z@2l
+ else:
+  x@1=x$l-wid;
+  y@2l=y@1+h_;
+  x@3=x$r-(y@2r-y$r)*xpart(nib_dir);
+  z@2l{z$l-z$$l}...{-d_}z@1 & z@1{nib_dir}---z@3...{z$$r-z$r}z@2r
+ fi
+enddef;
+
+vardef tilde_path@#(suffix $,$$,@)(expr offset) =
+ nibstems(@1,@2); x@1l-x$=x$$-x@2r=offset; y@1r=y$$; y@2l=y$;
+ penlabels(@1,@2);
+ lpath@#:=z${nib_dir}...{right}z@1l...{right}z@2l...{nib_dir rotated 20}z$$;
+ rpath@#:=z$${-nib_dir}...{left}z@2r...{left}z@1r...{(-nib_dir) rotated 20}z$;
+enddef;
 
 vardef diamond_serif_path(suffix $,$$,@) =
  nibthinstems(@1,@2); x@1r=x@2l=x$; y@1l=y@2r;
@@ -364,7 +411,7 @@ vardef out_serif_path(suffix $,$$,@) =
  z@2=whatever[z$,z$$]; y@2l=y@1l+nib_stem*ypart(nib_dir rotated 90);
  nibhairpos@3; z@3l=z@1r;
  penlabels(@1,@2,@3);
- z@2l{z$l-z$$l}..{nib_dir rotated -90}z@1l--z@1r
+ z@2l{z$l-z$$l}..{-nib_draw_dir}z@1l--z@1r
     --z@3r{z@1l-z@1r}..{z$$r-z$r}z@2r
 enddef;
 
@@ -574,6 +621,10 @@ vardef var_combine(expr first, second) =
  (subpath (0, xpart t_) of first)
  & trunc_path_start(second, ypart t_, point xpart t_ of first)
 enddef;
+
+tertiarydef first combined second =
+combine(first, second) enddef;
+tertiarydef first var_combined second = var_combine(first, second) enddef;
 
 vardef trunc_path_start(expr p, t, startpt) =
  save p_; path p_; p_ = subpath (t,infinity) of p;
@@ -1204,69 +1255,35 @@ vardef u_stroke_path@#(suffix $,@,@@,$$) =
  make_paths@#(rev.l) z@1e--z@2e--z@@e;
 enddef;
 
-def hook_out(suffix $,$$,$$$)suffix modifier= % |x$| and |x$$$| (only) are known
- pos$(stem,0); pos$$(vair,90);
- x$$$:=hround(x$$$+.5hair-eps)-.5hair; pos$$$(hair,180);
- y$=1/4x_height; bot y$$l=-oo; y$$$=1/3x_height;
- if skewed.modifier: x$$=x$+1.25u;
-  filldraw stroke z$e{-u,-x_height}...z$$e{right}...{up}z$$$e;  % hook
- else: x$$=x$+1.5u;
-  filldraw stroke z$e{down}...z$$e{right}
-   ...{x$$$-(x$+2.5u),x_height}z$$$e; fi enddef;  % hook
-
-def hook_out_points(suffix $,$$,$$$)suffix modifier =
- if not known (z$r-z$l): penpos$(stem,0); fi
- penpos$$(vair,90);
- if not known (z$$$r-z$$$l): penpos$$$(hair,166); fi
- y$=1/2x_height-eps; y$$l=-oo;
- if not known z$$$: y$$$=.39x_height; fi
- if skewed.modifier: x$$=x$+1.25u; else: x$$=x$+1.5u; fi
+vardef hook_in_path(suffix $,$$,@)(expr in_angle) =
+ save r_;
+ save d_; pair d_; d_=dir in_angle;
+ nibthinstems(@1); same_pos(@2,$$);
+ y@1r=y$$;
+ r_*(1+ypart d_)=x$$l-x$;
+ x@2l=x$$l;
+ y@1l-y@2l=r_; x@2l-x@1l=r_;
+ y$-y@2l=r_*xpart d_;
+ y@2r:=y@2l; x@1r:=.5[x$,x@2r];
+ penlabels(@1,@2);
+ z@2r{up}...z@1r{left}...{-d_ rotated 30}z$
+   & z${d_}...{right}z@1l...{down}z@2l
 enddef;
 
-vardef hook_out_path(expr diam)(suffix $,$$,$$$)suffix modifier =
- save dir_; pair dir_; dir_=(x$$$-(x$+2.5u),x_height);
- if skewed.modifier:
-  z$l{-u,-x_height}...z$$l{right}
-    ...{curl 0}pen_end(dir_,z$$$l,diam,z$$$r,-dir_){curl 0}
-    ...z$$r{left}...{u,x_height}z$r
- else:
-  z$l{down}...z$$l{right}...{dir_}pen_end(dir_,z$$$l,diam,z$$$r,-dir_){-dir_}
-    ...z$$r{left}...{up}z$r
- fi
-enddef;
-
-def hook_in(suffix $,$$,$$$)suffix modifier= % |x$| and |x$$$| (only) are known
- x$:=hround(x$-.5hair)+.5hair; pos$(hair,180);
- pos$$(vair,90); pos$$$(stem,0);
- y$=2/3x_height; top y$$r=x_height+oo; y$$$=3/4x_height;
- if skewed.modifier: x$$=x$$$-1.25u;
-  filldraw stroke z$e{up}...z$$e{right}...{-u,-x_height}z$$$e;  % hook
- else: x$$=x$$$-1.5u;
-  filldraw stroke z$e{x$$$-2.5u-x$,x_height}
-   ...z$$e{right}...{down}z$$$e; fi enddef;  % hook
-
-def hook_in_points(suffix $,$$,$$$)suffix modifier=
- if not known (z$r-z$l): penpos$(hair,155); fi
- penpos$$(vair,90);
- if not known (z$$$r-z$$$l): penpos$$$(stem,0); fi
- if not known y$: y$=.68x_height; fi
- y$$r=x_height+oo;
- if not known y$$$: y$$$=1/2x_height+eps; fi
- save pt_,frac_; numeric pt_,frac_;
- x$$r-x$r=frac_*(y$$r-y$r); pt_-x$l=frac_*(y$$l-y$l); x$$l:=pt_;
- if skewed.modifier: x$$=x$$$-1.25u; else: x$$=x$$$-1.5u; fi
-enddef;
-
-vardef hook_in_path(expr diam)(suffix $,$$,$$$)suffix modifier=
- if skewed.modifier:
-  save dir_; pair dir_; dir_=(x$$$-.5u-x$,x_height);
-  z$$$r{u,x_height}...z$$r{left}
-    ...{-dir_}pen_end(-dir_, z$r, diam, z$l, dir_){dir_}
-    ...z$$l{right}...z$$$l{-u,-x_height}
- else:
-  save dir_; pair dir_; dir_=(x$$$-2.5u-x$,x_height);
-  z$$$r{up}...z$$r{left}...pen_end(-dir_, z$r, diam, z$l, dir_)
-    ...z$$l{right}...z$$$l{down} fi
+%
+% Hook starting at point z$ and ending in a line segment of z$$--z$$$.
+vardef angled_hook_in_path@#(suffix $,$$,$$$,@)(expr in_angle) =
+ save theta,alpha,r;
+ theta=in_angle+20; alpha=180-angle(z$$r-z$$$r);
+ r*(sind(theta)+sind(alpha/2)/cosd(alpha/2))=x$$r-x$;
+ z@0=z$$r+whatever*dir(90-alpha/2); y@0=y$$r-r;
+ y$=y@0+cosd theta;
+ z@1r=whatever[z$$r,z$$$r]=z@0+whatever*dir(90-alpha);
+ z@2=(x@0,y$$r);
+ z@3=z$+whatever*dir in_angle=whatever[z$$l,z$$$l];
+ z@1l=whatever[z$$l,z$$$l]; y@1l=y@3-abs(z@3-z$)*sind(alpha);
+ rpath@#:=z@1r{z$$r-z$$$r}...{left}z@2...{-dir theta}z$;
+ lpath@#:=z${dir in_angle}...{z$$$l-z$$l}z@1l;
 enddef;
 
 def correct_r(suffix $,$$) =
@@ -1285,21 +1302,25 @@ def correct_l(suffix $,$$) =
  }};
 enddef;
 
-vardef crescent_path@#(suffix $,$$,$$$,$$$$) =
- if unknown y$l or unknown x$$l or unknown y$$$l or unknown x$$$$l:
+vardef crescent_path@#(suffix $,$$,$$$,$$$$)(expr cut_dir) =
+ pos$(.1nib_hair,nib_angle-90);
+ nibstems($$,$$$);
+ pos$$$$(.1nib_hair,nib_angle+90);
+ if unknown y$r or unknown x$$r or unknown y$$$r:
   errmessage "Insufficient points defined for crescent";
  fi
- if known x$l or known y$$l or known x$$$l or known y$$$$l:
+ if known x$r or known y$$r or known x$$$r or known y$$$$r:
   errmessage "Crescent points overdefined";
  fi
  save r_;
- r_1*(1+xpart nib_dir)=y$l-y$$$l;
- r_2*(1+ypart nib_dir)=x$$$$l-x$$l;
- y$$l=y$$$l+r_1; x$$$l=x$$l+r_2;
- x$l=x$$$l-r_2*ypart nib_dir;
- y$$$$l=y$$l-r_1*xpart nib_dir;
- make_paths@#(rev.r) z$e{-nib_dir}...{down}z$$e
-   ...{right}z$$$e...{nib_dir}z$$$$e;
+ r_1*(1+xpart cut_dir)=y$r-y$$$r;
+ r_2*(1+ypart cut_dir)=x$$$$r-x$$r;
+ if unknown x$$$$r: x$$$r-x$$r=r_1; fi
+ y$$r=y$$$r+r_1; x$$$r=x$$r+r_2;
+ x$r=x$$$r-r_2*ypart cut_dir;
+ y$$$$r=y$$r-r_1*xpart cut_dir;
+ make_paths@#(rev.r) z$l...{down}z$$e
+   ...{right}z$$$e...z$$$$l;
 enddef;
 
 def ital_arch(suffix $,$$,$$$) = % |z$| and |z$$$| (only) are known

@@ -129,7 +129,7 @@ fill p7--z1r{left}...z2r{down}...{right}z5r--lrend(6)--z4r
 penlabels(1,2,4,5,6,7,8,9); endchar;
 
 cmchar "Space";
-beginchar(oct"040",6u#,0,0);
+beginchar(oct"040",4u#,0,0);
 adjust_fit(0,0);
 %fill (0,0)--(w,0)--(w,vair)--(vair,0)--cycle;
 endchar;

@@ -357,8 +357,6 @@ forsuffixes $=r,,l:
  z21'$=whatever[z10l,z11l]=z21$+whatever*nib_draw_dir;
 endfor
 nibstems(1,4,5,6);
-show overlap_amt;
-show overlap_amt.more;
 y6r=h+o; x1l=u; overlap(1,6)more;
 x4r=w-u; y5l=-o; overlap(5,4)more;
 angle_points(1,2,21',down,nib_draw_dir);

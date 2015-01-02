@@ -53,10 +53,10 @@ inset_factor:=1;
 mode_setup; font_setup;
 input mgromanu;  % Roman uppercase
 input mgromanl;  % Roman uppercase
-input mgromand;  % Arabic numbers
-input mgromanp;
-input mgpunct;
-input mgcomlig;
+%input mgromand;  % Arabic numbers
+%input mgromanp;
+%input mgpunct;
+%input mgcomlig;
 %input mgromlig;
 input mgascii;
 
