@@ -756,29 +756,39 @@ unfill (lineintersection(7'l,10'l,10r,11r)--z7'l) var_combined lpath7 & rpath7
 penlabels(0,1,2,3,4,5,6,7,8,9,10,11,12); endchar;
 
 cmchar "The letter V";
-beginchar("V",13u#,cap_height#,0);
-italcorr cap_height#*slant+.25u#;
-adjust_fit(cap_serif_fit#,cap_serif_fit#);
-numeric left_stem,right_stem,outer_jut,alpha;
-left_stem=cap_stem-stem_corr;
-right_stem=min(cap_hair if hefty:-2stem_corr fi,left_stem);
-outer_jut=angled_jut(cap_jut,(.5w,h)); x1l=w-x4r=outer_jut; y1=y4=h;
-x2-x1-5u*slant=x4-x3; x2l=x3l; y2=y3=-apex_o;
-alpha=diag_ratio(2,right_stem,y1-y2,x4r-x1l-apex_corr);
-penpos1(alpha*left_stem,0); penpos2(alpha*left_stem,0);
-penpos3(alpha*right_stem,0); penpos4(alpha*right_stem,0);
-z0=whatever[z1r,z2r]=whatever[z3l,z4l];
-p1=notch_cut_path(0,cap_notch_cut, aa,4l,0,1r);
-if serifs: numeric inner_jut_l,inner_jut_r;
- (inner_jut_l,inner_jut_r)=serif_inner_juts(.53,1/3, 1,2,4,3);
- p2=dish_serif_path(1,2,a,1/3,outer_jut,b,.3,inner_jut_l);  % left serif
- p3=dish_serif_path(4,3,c,.4,inner_jut_r,d,.4,outer_jut)(dark); % right serif
-else:
- p2=pen_rlstem1(tiny,2);
- p3=pen_rlstem4(tiny,3);
-fi
-fill pen_end(z2l-z1l,z2l,tiny,z3r,z4r-z3r)--p3--p1--p2--cycle;
-math_fit(.75u#-cap_height#*slant,ic#-4u#); penlabels(0,1,2,3,4); endchar;
+beginchar("V",11u#,cap_height#,0);
+italcorr cap_height#*slant-cap_serif_fit#+cap_jut#-2.5u#+min(.5cap_stem#,u#);
+adjust_fit(0,0);
+nibstems(1,2,3,4);
+x1l=x2l=3u; x3r=x4r=w-u;
+y1=y3=h+o; y2=y4=-o;
+x0=.5u;
+nibthinstems(5,7);
+x5r=.5[x2r,x4l]+hair; y5l=-o; x6=u;
+y6=stem;
+x7r=x3; y7r=h+o; x8=w;
+nibhairs(5',7',9,10'); z5'l=z5l; x9l=w; nib_align(z5,z9l);
+z7'r=z7r; z10'r=z10l;
+pos11(nib_hair,0);
+%x11=.5[x2r,x4l];
+x4l-x11r=u;
+y11=0;
+pos12(nib_hair,0); x12=x11; y12=y3;
+forsuffixes e=l,,r: x10e=x11e; nib_align(z10e,z7); endfor
+p1=hook_in_path(0,1,b,30);
+p4=out_serif_path(4,3,a);
+swoop_in_path5(6,5,c);
+swoop_out_path7(7,8);
+p3421=(z3l--p4) combined (z9r--z5'r) var_combined rpath5
+  & lpath5 var_combined (z2r--p1);
+fill z5l--(lineintersection(5l,9l,4r,3r)--z3r var_combined lpath7) & rpath7
+  --z10r--z12r--
+  (z12l--z11l var_combined p3421) &
+  ((point infinity of p1)--z2l var_combined (rpath5 & lpath5)) & cycle;
+unfill (lineintersection(7'l,10'l,10r,11r)--z7'l) var_combined lpath7 & rpath7
+  combined (z3l--lineintersection(5'r,9r,4l,3l))
+  -- lineintersection(10r,11r,5'r,9r) -- cycle;
+penlabels(0,1,2,3,4,5,6,7,8,9,10,11,12); endchar;
 
 cmchar "The letter W";
 beginchar("W",18u#,cap_height#,0);
