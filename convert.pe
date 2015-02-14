@@ -1,5 +1,24 @@
 #!/usr/bin/env fontforge -script
 Open($1)
+copyright="Copyright 2015 Charles Duan. Based on METAFONT Computer Modern " + \
+    "sources by Donald Knuth. This Font Software is licensed under the " + \
+    "SIL Open Font License, Version 1.1. The license is available at " + \
+    "http://scripts.sil.org/OFL."
+
+famname="Old English CD"
+psname="OldEnglishCD"
+
+fullstyle=psstyle=weight="Regular"
+style=""
+
+SetFontNames("OldEnglishCD-Regular", "Old English CD", \
+    "Old English CD-Regular", "Regular", copyright)
+SetTTFName(0x409, 0, copyright)                               
+SetTTFName(0x409, 1, famname)                                 
+SetTTFName(0x409, 2, fullstyle)                               
+SetTTFName(0x409, 4, psname + "-" + psstyle)                  
+SetMacStyle(-1)                                               
+
 SelectAll()
 AutoHint()
 Generate($1:r + ".otf")

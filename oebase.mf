@@ -32,8 +32,9 @@ vardef bold_width_expansion=
  else: 1 fi
 enddef;
 
-vardef w_strokes(expr num) = 2u#+stem#*num+2u#*(num-1) enddef;
-vardef w_open_strokes = 2u#+2stem#+.5u# enddef;
+vardef w_margin = 1.25u enddef;
+vardef w_strokes(expr num) = 2.5u#+stem#*num+2.5u#*(num-1) enddef;
+vardef w_open_strokes = 2.5u#+2stem#+1.25u# enddef;
 
 def beginchar(expr c,w_sharp,h_sharp,d_sharp) =
  begingroup
