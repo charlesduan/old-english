@@ -722,7 +722,7 @@ fill z7r--z9r--z9l--lineintersection(9l,10l,7l,8l)--p8--cycle;
 penlabels(1,2,3,4,5,6,7,8,9,10,11,12); endchar;
 
 cmchar "The letter U";
-beginchar("U",11u#,cap_height#,0);
+beginchar("U",12u#,cap_height#,0);
 italcorr cap_height#*slant-cap_serif_fit#+cap_jut#-2.5u#+min(.5cap_stem#,u#);
 adjust_fit(0,0);
 nibstems(1,2,3,4);
@@ -756,7 +756,7 @@ unfill (lineintersection(7'l,10'l,10r,11r)--z7'l) var_combined lpath7 & rpath7
 penlabels(0,1,2,3,4,5,6,7,8,9,10,11,12); endchar;
 
 cmchar "The letter V";
-beginchar("V",11u#,cap_height#,0);
+beginchar("V",12u#,cap_height#,0);
 italcorr cap_height#*slant-cap_serif_fit#+cap_jut#-2.5u#+min(.5cap_stem#,u#);
 adjust_fit(0,0);
 nibstems(1,2,3,4);
