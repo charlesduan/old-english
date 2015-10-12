@@ -28,7 +28,7 @@ beginchar("-",6u#,x_height#,0);
 italcorr .5x_height#*slant-.5u#;
 adjust_fit(0,0);
 numeric thickness; thickness=if hefty:bar else:.75[hair,stem] fi;
-pos1(thickness,90); pos2(thickness,90);
+pos1(thickness,nib_horiz_angle); pos2(thickness,nib_horiz_angle);
 y1r=y2r=vround(.5h+.5thickness); x2=w;
 if monospace: x2=w-x1 else: x1=0 fi;
 fill pen_rlend1(left,crisp,right)--pen_lrend2(right,crisp,left)--cycle;

@@ -7,6 +7,7 @@ font_identifier := "old-english-regular";
 nib_angle := 35;
 nib_dir := dir nib_angle;
 nib_draw_dir := dir 150;
+nib_horiz_angle := 90-nib_angle;
 
 boolean small_caps;
 small_caps = false;
@@ -56,7 +57,7 @@ input mgromanl;  % Roman uppercase
 input mgromand;  % Arabic numbers
 input mgromanp;
 input mgpunct;
-%input mgcomlig;
+input mgcomlig;
 %input mgromlig;
 input mgascii;
 

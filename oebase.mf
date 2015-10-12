@@ -96,7 +96,7 @@ def autorounded = interim autorounding:=2 enddef;
 
 pair nib_dir;
 pair nib_draw_dir;
-newinternal nib_angle;
+newinternal nib_angle,nib_horiz_angle;
 
 newinternal slant,fudge,math_spread,superness,superpull,beak_darkness,ligs;
 newinternal O_superness,miter_ratio;

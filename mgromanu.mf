@@ -115,11 +115,14 @@ z7'r=z7r; z9'r=z9l;
 z10'l=z10r; x11r=0; nib_align(z11l,z10r);
 pos5(nib_hair,0); pos6(nib_hair,0); x5=x6; x5l=x9r+u; y6=0; y5r=h+o;
 nibstems(7); y7r=h+o; nib_align(z7,z9);
-x8=x4l;
-swoop_out_path8(7,8);
+x8r=x4l-oo;
+same_pos(8,7);
+x8'=x8;
+nib_draw_align(z7,z8'); y8=.5[y7,y8'];
+make_paths8(rev.r) z7e{-nib_draw_dir}..tension atleast 1.5..{nib_dir rotated -30}z8e;
 fill var_combine(lineintersection(9l,10l,10'r,11r)--z11r,rpath1) & lpath1 &
- var_combine(combine(rpath1,z6r--z5r),lpath8 & rpath8)--z9l--cycle;
-unfill lineintersection(10r,9r,9'l,7'l)--z7'l var_combined lpath8 & rpath8
+ var_combine(combine(rpath1,z6r--z5r),lpath8 -- rpath8)--z9l--cycle;
+unfill lineintersection(10r,9r,9'l,7'l)--z7'l var_combined lpath8 -- rpath8
   combined (z5l--z6l) var_combined rpath1 combined (z11l--z10r)--cycle;
 penlabels(1,2,3,4,5,6,7,8,9,10,11); endchar;
 
@@ -638,23 +641,23 @@ else: penpos8(cap_stem-2stem_corr,0); penpos9(cap_stem,0);
 math_fit(0,.75ic#); penlabels(0,1,2,3,4,5,6,6',7,8,8',9,10); endchar;
 
 cmchar "The letter S";
-beginchar("S",12u#,cap_height#,0);
+beginchar("S",13u#,cap_height#,0);
 italcorr cap_height#*slant-u#;
 adjust_fit(0,0);
 numeric theta; theta=90; slope:=-cosd(theta)/sind(theta);
 numeric s_slab; s_slab=if serifs:slab else:vround .2[slab,cap_stem] fi;
 numeric s_gap; s_gap=1u;
 pos2(stem,nib_angle+180);
-pos0(stem,theta); pos7(s_slab,-90);
+pos0(cap_ess,theta); pos7(s_slab,-90);
 x0=.5w; x2=x0-u; x7=x0+.5u; y2l=h+o; y2r-y0r=y0l-s_gap-stem-y7l;
-y0l=.5h+1u; x3l=2u; x6r=w-u+o;
+y0l=.5h+.5u; x3l=2.5u; x6r=w-u+o;
 x3r-x3l=x6r-x6l=2nib_hair;
 ellipse_set(2l,3l,4l,0l); ellipse_set(2r,3r,4r,0r); y3=y3r;
 ellipse_set(7l,6l,5l,0l); ellipse_set(7r,6r,5r,0r); y6=y6r;
 make_paths1(rev.r) super_arc.e(2,3) & z3e{down}
  ...{z5e-z4e}z0e...z6e{down};  % main stroke
 pos1(nib_stem,nib_angle-180); pos8(hair,180);
-z1=z2+whatever*(nib_draw_dir yscaled .5); x1l=w-1.5u;
+z1=z2+whatever*(nib_draw_dir yscaled .5); x1l=w-2u;
 pos10(nib_hair,0); pos9(nib_hair,0);
 x9r=3u;
 y10=y2l; y9=0;
@@ -667,34 +670,41 @@ pos7'(2nib_hair,-90+angle s_term_dir);
 z7'l=z6l+whatever*s_term_dir+.5u*right; y7'=-o;
 pair pd.r[], pd.l[];
 pd.r3=down; pd.l3=down rotated -30;
-pos7''(2nib_hair,-60); z7''r=z7'l+s_gap*(s_term_dir rotated 90);
-x6'r=x6l-s_gap; x6'r-x6'l=x6r-x6l;
-slope:=.9; % No idea why this works, but it does
-ellipse_set(0'r,6'r,7.1r,7''r);
-ellipse_set(0'l,6'l,7.1l,7''l);
-make_paths3(rev.r) z3'e{pd.e3}...{z5e-z4e}z0'e...{down}z6'e..{-s_term_dir}z7''e;
+%pos7''(2nib_hair,-60); z7''r=z7'l+s_gap*(s_term_dir rotated 90);
+%x6'r=x6l-s_gap; x6'r-x6'l=x6r-x6l;
+%slope:=.9; % No idea why this works, but it does
+%ellipse_set(0'r,6'r,7.1r,7''r);
+%ellipse_set(0'l,6'l,7.1l,7''l);
 x8=.5u;
+make_paths6(rev.r) z6e{down}..{-s_term_dir}z7'e;
 nibstems(11); z11l=z7'r;
 swoop_in_path11(8,11,a);
 make_paths2(rev.r) z1e{nib_draw_dir}..{left}z2e;
 make_paths10(rev.l) z9e--z10e;
-make_paths6(rev.r) z6e{down}..{-s_term_dir}z7'e;
+numeric s_corner_time; pair s_corner_dir;
+s_corner_time=xpart(lpath6 intersectiontimes rpath11);
+s_corner_dir=direction s_corner_time of lpath6;
+z12r=z12l=z12=(point s_corner_time of lpath6)
+    + (s_corner_dir/abs(s_corner_dir) rotated -90 scaled s_gap);
+x6'r=x6l-s_gap;
+x6'l-x6'r=x6l-x6r;
+ellipse_set(12l,6'l,6''l,0'l);
+ellipse_set(12r,6'r,6''r,0'r);
+make_paths3(rev.r) z3'e{pd.e3}...{z5e-z4e}z0'e...{down}z6'e;
+make_paths12(rev.r) z6'e{down}...z12e;
 fill lpath10 var_combined lpath2
  & (lpath1 combined lpath10 var_combined rpath3)
  & (lpath3 combined lpath10 var_combined rpath11)
  & lpath11
- %& (p11.2 var_combined lpath10)
- %-- (rpath10 var_combined p11.2)
  & rpath6 & (rpath1 combined rpath10)
  --cycle;
-
 unfill rpath2 combined lpath10 var_combined rpath1 & cycle;
 
-unfill lpath6 combined rpath11 combined rpath3 combined rpath10
- var_combined lpath1 & cycle;
-unfill (subpath (2,infinity) of lpath3) combined rpath11 combined rpath10
- var_combined (subpath(0,2) of lpath3) & cycle;
-penlabels(0,0',1,1',2,3,3',4,5,6,6',7,7',7'',7.1,8,8',9,10,11); endchar;
+unfill lpath6 combined rpath11 combined rpath10 var_combined lpath3
+ & subpath(0,.5) of lpath12{direction .5 of lpath12 rotated (180-30)}
+ ...(rpath3 combined rpath10 var_combined subpath (2, infinity) of lpath1)
+ & cycle;
+penlabels(0,0',1,1',2,3,3',4,5,6,6',7,7',8,8',9,10,11,12); endchar;
 
 cmchar "The letter T";
 beginchar("T",12u#,cap_height#,0);
